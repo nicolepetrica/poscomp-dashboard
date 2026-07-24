@@ -383,6 +383,78 @@
 
   a { color: var(--cyan); }
 
+  /* Responsive: table cards on mobile */
+  @media (max-width: 640px) {
+    #simulados-table { display: none; }
+    #sim-cards { display: grid; gap: 0.75rem; }
+    .sim-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    .sim-card h4 { margin: 0 0 0.5rem; font-size: 0.9rem; }
+    .sim-card .row { display: flex; justify-content: space-between; padding: 0.2rem 0; font-size: 0.8rem; }
+    .sim-card .row .val { font-weight: 600; }
+    .sim-card .actions { margin-top: 0.5rem; display: flex; gap: 0.35rem; }
+    .est-desk-only { display: none; }
+  }
+  @media (min-width: 641px) {
+    #sim-cards { display: none; }
+    .est-desk-only { display: revert; }
+  }
+
+  /* Responsive: table overflow for all sections */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Responsive: Estatísticas */
+  @media (max-width: 768px) {
+    .stats-grid-3 { grid-template-columns: 1fr !important; }
+    .filter-bar { flex-direction: column; align-items: flex-start; }
+    .notes-layout { grid-template-columns: 1fr !important; }
+    .note-list { max-height: 150px; }
+  }
+
+  /* Notas layout */
+  .notes-layout { display: grid; grid-template-columns: 220px 1fr; gap: 1rem; }
+  .note-list {
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    padding: 0.5rem;
+    overflow-y: auto;
+    max-height: 500px;
+  }
+  .note-list-item {
+    padding: 0.5rem 0.65rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    margin-bottom: 0.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .note-list-item:hover, .note-list-item.active { background: rgba(6,182,212,0.12); color: var(--cyan); }
+  .note-editor { display: flex; flex-direction: column; gap: 0.5rem; }
+  .note-editor textarea { flex: 1; min-height: 300px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.82rem; }
+  .note-preview {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    min-height: 200px;
+    font-size: 0.85rem;
+    overflow-y: auto;
+  }
+  .note-preview h1, .note-preview h2, .note-preview h3 { color: var(--text); margin: 0.75rem 0 0.35rem; }
+  .note-preview code { background: rgba(255,255,255,0.08); padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.82rem; }
+  .note-preview pre { background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 8px; overflow-x: auto; }
+  .note-preview pre code { background: none; padding: 0; }
+  .note-preview table { font-size: 0.8rem; }
+  .note-preview blockquote { border-left: 3px solid var(--cyan); padding-left: 0.75rem; color: var(--muted); margin: 0.5rem 0; }
+
+  .ka { font-style: italic; }
+
   @media (max-width: 768px) {
     body { padding: 0.5rem; }
     .stats { grid-template-columns: 1fr; }
@@ -409,7 +481,10 @@
       <div class="box"><div class="num">22</div><div class="label">Provas analisadas</div></div>
       <div class="box"><div class="num" id="sim-count">0</div><div class="label">Simulados feitos</div></div>
     </div>
-    <span class="sync-indicator sync-offline" id="sync-badge">⚪ Sync não configurado</span>
+    <span class="sync-indicator sync-offline" id="sync-badge">⚪ Offline</span>
+    <button class="btn btn-sm" onclick="configurarSync()" id="btn-config-sync">🔐 Configurar sync</button>
+    <button class="btn btn-sm" onclick="syncNow()" id="btn-sync" style="display:none;">🔄 Sincronizar</button>
+    <button class="btn btn-sm" onclick="document.getElementById('modal-restore-pin').classList.add('show')" id="btn-pin-restore">🔑 PIN</button>
   </div>
 </div>
 
@@ -448,7 +523,7 @@
 <!-- Matriz Esforço × Retorno -->
 <div class="section">
   <h2>🎯 Matriz Esforço × Retorno</h2>
-  <p style="color:var(--muted);margin-bottom:1rem;font-size:0.85rem;">Adaptada ao seu perfil: Eng. de Computação + Data Scientist no iFood</p>
+  <p style="color:var(--muted);margin-bottom:1rem;font-size:0.85rem;">Distribuição baseada na análise de 22 provas (2002–2025)</p>
 
   <div class="quadrant">
     <div class="quad-cell q-tl">
@@ -529,7 +604,7 @@
       <div class="week-header"><h3>Semana 1 — Diagnóstico</h3><span class="dates">21–26 Jul</span></div>
       <p class="objective">Saber exatamente onde você está. Sem isso, o resto é tiro no escuro.</p>
       <ul class="tasks">
-        <li><span class="dot dot-red"></span> <strong>Simulado com prova 2024</strong> (4h cronometrado)</li>
+        <li><span class="dot dot-red"></span> <strong>Simulado 1 completo</strong> (4h cronometrado)</li>
         <li><span class="dot dot-red"></span> <strong>Corrigir com gabarito</strong> — anotar por tópico</li>
         <li><span class="dot dot-yellow"></span> <strong>Análise de erros</strong> — classificar cada</li>
         <li><span class="dot dot-yellow"></span> Montar <strong>matriz fraqueza/força</strong></li>
@@ -541,7 +616,7 @@
       <p class="objective">Atacar a área de maior peso.</p>
       <ul class="tasks">
         <li><span class="dot dot-red"></span> <strong>2 sessões</strong> nos 3 piores tópicos de Fundamentos</li>
-        <li><span class="dot dot-red"></span> <strong>Simulado com prova 2023</strong> (4h)</li>
+        <li><span class="dot dot-red"></span> <strong>Simulado 2 completo</strong> (4h)</li>
         <li><span class="dot dot-yellow"></span> Corrigir, atualizar matriz</li>
         <li><span class="dot dot-yellow"></span> Comparar evolução Fundamentos</li>
         <li><span class="dot dot-muted"></span> Revisar 1 tópico fraco de Matemática</li>
@@ -553,9 +628,9 @@
       <ul class="tasks">
         <li><span class="dot dot-red"></span> <strong>2 sessões de Matemática</strong></li>
         <li><span class="dot dot-red"></span> <strong>2 sessões de Tecnologia</strong></li>
-        <li><span class="dot dot-yellow"></span> <strong>Simulado com prova 2019</strong> (4h)</li>
+        <li><span class="dot dot-yellow"></span> <strong>Simulado 3 completo</strong> (4h)</li>
         <li><span class="dot dot-yellow"></span> Corrigir, atualizar matriz</li>
-        <li><span class="dot dot-muted"></span> 20 questões avulsas da prova 2018</li>
+        <li><span class="dot dot-muted"></span> 20 questões avulsas de Mat + Tec</li>
       </ul>
     </div>
     <div class="week">
@@ -564,7 +639,7 @@
       <ul class="tasks">
         <li><span class="dot dot-red"></span> <strong>Refazer TODAS as erradas</strong> dos 3 simulados</li>
         <li><span class="dot dot-red"></span> <strong>2 sessões</strong> nos tópicos crônicos</li>
-        <li><span class="dot dot-yellow"></span> <strong>Simulado com prova 2018</strong> (4h)</li>
+        <li><span class="dot dot-yellow"></span> <strong>Simulado 4 completo</strong> (4h)</li>
         <li><span class="dot dot-yellow"></span> Corrigir, atualizar matriz</li>
         <li><span class="dot dot-muted"></span> Treinar estratégia de chute</li>
       </ul>
@@ -633,7 +708,7 @@
   <h2>📝 Acompanhamento de Simulados</h2>
   <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Crie, edite e acompanhe seus simulados. Clique nas células para editar.</p>
 
-  <div id="simulados-table-container">
+  <div id="simulados-table-container" class="table-wrap">
     <table id="simulados-table">
       <thead>
         <tr>
@@ -642,13 +717,13 @@
       </thead>
       <tbody id="simulados-tbody"></tbody>
     </table>
+    <div id="sim-cards"></div>
   </div>
 
   <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
     <button class="btn btn-primary" onclick="abrirModalSimulado()">+ Novo Simulado</button>
     <button class="btn" onclick="exportarDados()">📥 Exportar dados</button>
     <button class="btn" onclick="importarDados()">📤 Importar dados</button>
-    <button class="btn" onclick="syncNow()" id="btn-sync">🔄 Sincronizar agora</button>
   </div>
 
   <div id="sim-stats" style="margin-top:1rem;font-size:0.85rem;color:var(--muted);"></div>
@@ -671,6 +746,16 @@
       <thead id="gaps-thead"></thead>
       <tbody id="gaps-tbody"></tbody>
     </table>
+  </div>
+
+  <h3 style="margin-top:1.5rem;">📍 Onde focar</h3>
+  <p style="color:var(--muted);font-size:0.8rem;margin-bottom:0.5rem;">Eixo X = frequência na prova (questões/prova). Eixo Y = seu % de acerto. Quanto mais à direita e abaixo, mais urgente.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+    <div style="max-height:350px;"><canvas id="chart-scatter"></canvas></div>
+    <div>
+      <h4 style="font-size:0.85rem;margin:0 0 0.5rem;">📋 Ações sugeridas (ordem de prioridade)</h4>
+      <div id="gaps-acoes" style="font-size:0.8rem;color:var(--muted);">Preencha a matriz de gaps para ver sugestões.</div>
+    </div>
   </div>
 </div>
 </div>
@@ -711,6 +796,11 @@
     </div>
     <div>
       <h3 style="margin-top:0;">Histórico</h3>
+      <div style="margin-bottom:0.5rem;">
+        <select id="filtro-erro-simulado" onchange="renderizarErros()" style="width:auto;min-width:160px;">
+          <option value="">Todos os simulados</option>
+        </select>
+      </div>
       <div id="erros-lista" style="font-size:0.82rem;color:var(--muted);">Nenhum erro registrado ainda.</div>
     </div>
   </div>
@@ -718,24 +808,21 @@
 </div>
 
 <!-- ================================================================ -->
-<!-- TAB: FÓRMULAS -->
+<!-- TAB: NOTAS (Fórmulas / Conceitos) -->
 <!-- ================================================================ -->
 <div class="tab-pane" id="pane-formulas">
 <div class="section">
-  <h2>📐 Resumo de Fórmulas</h2>
-  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Use este espaço para anotar fórmulas e conceitos-chave. Salvo automaticamente.</p>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;">
+  <h2>📐 Notas e Fórmulas</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Markdown com suporte a LaTeX (<code>$E=mc^2$</code> para inline, <code>$$\\int_a^b$$</code> para bloco).</p>
+
+  <div class="notes-layout">
     <div>
-      <h3 style="color:var(--blue);">Matemática</h3>
-      <textarea id="form-math" rows="12" placeholder="Álgebra Linear, Cálculo, Lógica, Combinatória..."></textarea>
+      <button class="btn btn-primary btn-sm" onclick="novaNota()" style="width:100%;margin-bottom:0.3rem;">+ Nova nota</button>
+      <button class="btn btn-sm" onclick="baixarNotasPDF()" style="width:100%;margin-bottom:0.5rem;">📥 Baixar todas (PDF)</button>
+      <div class="note-list" id="note-list"></div>
     </div>
-    <div>
-      <h3 style="color:var(--purple);">Fundamentos</h3>
-      <textarea id="form-fund" rows="12" placeholder="Complexidade, Estruturas, SO, Grafos..."></textarea>
-    </div>
-    <div>
-      <h3 style="color:var(--cyan);">Tecnologia</h3>
-      <textarea id="form-tec" rows="12" placeholder="BD, Redes, Eng.Software, IA..."></textarea>
+    <div class="note-editor" id="note-editor-panel">
+      <p style="color:var(--muted);text-align:center;padding:3rem 0;">Selecione ou crie uma nota para começar.</p>
     </div>
   </div>
 </div>
@@ -766,14 +853,21 @@
     <button class="btn btn-sm" onclick="aplicarFiltro()">Aplicar</button>
   </div>
 
-  <h3>Top 10 tópicos mais cobrados</h3>
-  <table>
-    <thead><tr><th>#</th><th>Tópico</th><th>Área</th><th>Total</th><th>Média/prova</th><th>% do total</th></tr></thead>
-    <tbody id="stats-top10"></tbody>
-  </table>
+  <h3>📊 Frequência por tópico</h3>
+  <div style="max-height:350px;"><canvas id="chart-barras"></canvas></div>
 
-  <h3>Distribuição por área</h3>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;" id="stats-por-area"></div>
+  <h3>📈 Evolução temporal</h3>
+  <div style="margin-bottom:0.5rem;">
+    <select id="chart-linha-topico" onchange="renderizarLinha()" style="width:auto;min-width:200px;"></select>
+  </div>
+  <div style="max-height:250px;"><canvas id="chart-linha"></canvas></div>
+
+  <h3>🗺 Heatmap: Tópicos × Anos</h3>
+  <p style="color:var(--muted);font-size:0.8rem;margin-bottom:0.5rem;">Intensidade = mais questões naquele ano. Passe o mouse para ver o valor exato.</p>
+  <div style="overflow-x:auto;" id="heatmap-container"></div>
+
+  <h3>📋 Tabela detalhada por área</h3>
+  <div class="stats-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;" id="stats-por-area"></div>
 </div>
 </div>
 
@@ -814,6 +908,38 @@
   </div>
 </div>
 
+<!-- Modal: Criar PIN -->
+<div class="modal-overlay" id="modal-criar-pin">
+  <div class="modal">
+    <h3>🔒 Criar PIN de recuperação</h3>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;">
+      Este PIN de 6 dígitos permite restaurar seus dados em qualquer dispositivo <strong>sem precisar do token do GitHub</strong>. Guarde-o bem!
+    </p>
+    <div class="form-group"><label>PIN (6 dígitos)</label><input type="password" id="pin-novo" maxlength="6" placeholder="000000" inputmode="numeric" pattern="[0-9]*"></div>
+    <div class="form-group"><label>Confirmar PIN</label><input type="password" id="pin-confirmar" maxlength="6" placeholder="000000" inputmode="numeric" pattern="[0-9]*"></div>
+    <div class="actions">
+      <button class="btn" onclick="fecharModal('modal-criar-pin')">Pular</button>
+      <button class="btn btn-primary" onclick="setupPin()">Salvar PIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Entrar com PIN -->
+<div class="modal-overlay" id="modal-restore-pin">
+  <div class="modal">
+    <h3>🔐 Restaurar dados</h3>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;">
+      Digite seu PIN de 6 dígitos e seu usuário do GitHub para recuperar todos os seus dados.
+    </p>
+    <div class="form-group"><label>Usuário do GitHub</label><input type="text" id="pin-username" placeholder="seu-usuario"></div>
+    <div class="form-group"><label>PIN (6 dígitos)</label><input type="password" id="pin-restore" maxlength="6" placeholder="000000" inputmode="numeric" pattern="[0-9]*"></div>
+    <div class="actions">
+      <button class="btn" onclick="fecharModal('modal-restore-pin')">Cancelar</button>
+      <button class="btn btn-primary" onclick="restoreWithPin()">Restaurar dados</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast" style="display:none;"></div>
 
@@ -829,6 +955,10 @@
 <!-- SCRIPTS -->
 <!-- ================================================================ -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@11/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/contrib/auto-render.min.js"></script>
 <script>
 // =============================================================
 // DADOS ESTATÍSTICOS (embutidos de estatisticas_topicos.json)
@@ -851,6 +981,7 @@ const DEFAULT_DATA = {
   checklist: {},
   erros: [],
   formulas: { matematica: '', fundamentos: '', tecnologia: '' },
+  notas: [],
   filtroData: { inicio: 2018, fim: 2025 },
   gistId: null,
 };
@@ -914,6 +1045,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (tab === 'gaps') renderizarGaps();
     if (tab === 'erros') prepararFormErros();
     if (tab === 'checklist') renderizarChecklist();
+    if (tab === 'formulas') renderizarNotas();
   });
 });
 
@@ -1005,13 +1137,17 @@ function removerSimulado(id) {
 
 function renderizarSimulados() {
   const tbody = document.getElementById('simulados-tbody');
+  const cardsDiv = document.getElementById('sim-cards');
   document.getElementById('sim-count').textContent = data.simulados.length;
 
   if (data.simulados.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem;">Nenhum simulado ainda. Clique em "+ Novo Simulado" para começar.</td></tr>';
+    const empty = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem;">Nenhum simulado ainda. Clique em "+ Novo Simulado" para começar.</td></tr>';
+    tbody.innerHTML = empty;
+    cardsDiv.innerHTML = '<p style="text-align:center;color:var(--muted);padding:2rem;">Nenhum simulado ainda.</p>';
     return;
   }
 
+  // Desktop table
   tbody.innerHTML = data.simulados.map(s => `
     <tr>
       <td><strong>${esc(s.nome)}</strong></td>
@@ -1027,6 +1163,24 @@ function renderizarSimulados() {
         <button class="btn btn-sm btn-danger" onclick="removerSimulado('${s.id}')" title="Remover">🗑</button>
       </td>
     </tr>
+  `).join('');
+
+  // Mobile cards
+  cardsDiv.innerHTML = data.simulados.map(s => `
+    <div class="sim-card">
+      <h4>${esc(s.nome)}</h4>
+      <div class="row"><span>Data</span><span class="val">${s.data || '—'}</span></div>
+      <div class="row"><span>Total</span><span class="val">${s.total || '—'} /70</span></div>
+      <div class="row"><span>Matemática</span><span class="val">${s.mat || '—'} /20</span></div>
+      <div class="row"><span>Fundamentos</span><span class="val">${s.fund || '—'} /30</span></div>
+      <div class="row"><span>Tecnologia</span><span class="val">${s.tec || '—'} /20</span></div>
+      <div class="row"><span>Tempo</span><span class="val">${s.tempo || '—'}</span></div>
+      ${s.obs ? `<div class="row"><span>Obs</span><span class="val">${esc(s.obs)}</span></div>` : ''}
+      <div class="actions">
+        <button class="btn btn-sm" onclick="abrirModalSimulado('${s.id}')">✏️ Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="removerSimulado('${s.id}')">🗑 Remover</button>
+      </div>
+    </div>
   `).join('');
 }
 
@@ -1109,9 +1263,8 @@ function renderizarGaps() {
     sims.forEach(s => {
       const key = s.id + '_pct';
       const val = gap[key];
-      const pctClass = prioridadeDoPct(val);
-      const bgClass = pctClass ? `gap-prio-${pctClass}` : '';
-      row += `<td class="edit-cell ${bgClass}" onclick="editarGap(this, '${esc(topico)}', '${s.id}')">${val !== null && val !== undefined && val !== '' ? val + '%' : '—'}</td>`;
+      const bg = gapHeatColor(val);
+      row += `<td class="edit-cell" style="background:${bg};text-align:center;" onclick="editarGap(this, '${esc(topico)}', '${s.id}')">${val !== null && val !== undefined && val !== '' ? val + '%' : '—'}</td>`;
     });
 
     const prio = gap.prioridade || '';
@@ -1123,6 +1276,138 @@ function renderizarGaps() {
     row += '</tr>';
     return row;
   }).join('');
+
+  // Scatter chart "Onde focar"
+  renderizarScatterGaps();
+
+  // Ações sugeridas
+  renderizarAcoesGaps();
+}
+
+function gapHeatColor(val) {
+  if (val === null || val === undefined || val === '') return 'transparent';
+  const pct = Number(val);
+  if (isNaN(pct)) return 'transparent';
+  // Gradiente: vermelho (0%) → amarelo (50%) → verde (100%)
+  if (pct >= 70) return `rgba(16, 185, 129, ${0.1 + 0.3 * (pct-70)/30})`;
+  if (pct >= 50) return `rgba(${Math.round(245 - 4.6*(pct-50))}, ${Math.round(158 + 0.54*(pct-50))}, 11, ${0.15 + 0.3 * (pct-50)/20})`;
+  return `rgba(239, 68, 68, ${0.1 + 0.4 * (50-pct)/50})`;
+}
+
+function renderizarScatterGaps() {
+  if (!window._estatData) return;
+  const { todosTopicos } = window._estatData;
+  const freqMap = {};
+  todosTopicos.forEach(t => { freqMap[t.topico] = t.media_por_prova; });
+
+  const pontos = [];
+  TOPICOS_GAPS.forEach(({topico, area}) => {
+    const gap = data.matrizGaps[topico] || {};
+    let totalPct = 0, count = 0;
+    data.simulados.forEach(s => {
+      const v = gap[s.id + '_pct'];
+      if (v !== null && v !== undefined && v !== '' && !isNaN(v)) { totalPct += Number(v); count++; }
+    });
+    if (count > 0) {
+      const avgPct = totalPct / count;
+      const freq = freqMap[topico] || 0;
+      pontos.push({ topico, area, freq, pct: avgPct, r: freq * 4 + 4 });
+    }
+  });
+
+  if (window._scatterChart) window._scatterChart.destroy();
+  const ctx = document.getElementById('chart-scatter');
+  if (!ctx || pontos.length === 0) return;
+
+  const areaColors2 = { Matemática: 'rgba(59,130,246,0.7)', Fundamentos: 'rgba(139,92,246,0.7)', Tecnologia: 'rgba(6,182,212,0.7)' };
+  const areaBorder = { Matemática: '#3b82f6', Fundamentos: '#8b5cf6', Tecnologia: '#06b6d4' };
+
+  const datasets = ['Matemática', 'Fundamentos', 'Tecnologia'].map(area => ({
+    label: area,
+    data: pontos.filter(p => p.area === area).map(p => ({ x: p.freq, y: p.pct, r: p.r })),
+    backgroundColor: areaColors2[area],
+    borderColor: areaBorder[area],
+    borderWidth: 1,
+  }));
+
+  window._scatterChart = new Chart(ctx, {
+    type: 'bubble',
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#94a3b8', boxWidth: 12, font: { size: 10 } } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const p = pontos[ctx.datasetIndex > 0 ? pontos.filter(x => x.area === datasets[ctx.datasetIndex-1]?.label).length + ctx.dataIndex : ctx.dataIndex];
+              if (!p || pontos.indexOf(p) < 0) {
+                // simplified tooltip
+                return `${ctx.raw.x?.toFixed(1) || ctx.raw.x}q/prova, ${ctx.raw.y?.toFixed(0) || ctx.raw.y}%`;
+              }
+              const matched = pontos.find(pt => Math.abs(pt.freq - ctx.raw.x) < 0.01 && Math.abs(pt.pct - ctx.raw.y) < 0.1);
+              if (matched) return `${matched.topico}: ${matched.freq.toFixed(1)}q/prova, ${matched.pct.toFixed(0)}%`;
+              return `${ctx.raw.x.toFixed(1)}q/prova, ${ctx.raw.y.toFixed(0)}%`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Frequência (q/prova)', color: '#94a3b8' }, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+        y: { title: { display: true, text: '% acerto', color: '#94a3b8' }, grid: { color: '#334155' }, ticks: { color: '#94a3b8' }, min: 0, max: 100 }
+      }
+    }
+  });
+}
+
+function renderizarAcoesGaps() {
+  const container = document.getElementById('gaps-acoes');
+  if (!container) return;
+  if (!window._estatData) { container.innerHTML = '<p>Carregando dados...</p>'; return; }
+
+  const { todosTopicos } = window._estatData;
+  const freqMap = {};
+  todosTopicos.forEach(t => { freqMap[t.topico] = t.media_por_prova; });
+
+  const acoes = [];
+  TOPICOS_GAPS.forEach(({topico, area}) => {
+    const gap = data.matrizGaps[topico] || {};
+    let totalPct = 0, count = 0;
+    data.simulados.forEach(s => {
+      const v = gap[s.id + '_pct'];
+      if (v !== null && v !== undefined && v !== '' && !isNaN(v)) { totalPct += Number(v); count++; }
+    });
+    const avgPct = count > 0 ? totalPct / count : null;
+    const freq = freqMap[topico] || 0;
+    // Score de retorno: frequência * (1 - acerto) — quanto maior, mais urgente
+    const score = avgPct !== null ? freq * (1 - avgPct / 100) : 0;
+    acoes.push({ topico, area, freq, pct: avgPct, score });
+  });
+
+  if (acoes.filter(a => a.pct !== null).length === 0) {
+    container.innerHTML = '<p style="color:var(--muted);">Preencha ao menos um tópico na matriz de gaps acima para ver sugestões de prioridade.</p>';
+    return;
+  }
+
+  acoes.sort((a, b) => b.score - a.score);
+
+  container.innerHTML = `
+    <table>
+      <thead><tr><th>#</th><th>Tópico</th><th>Freq.</th><th>Acerto</th><th>Prior.</th></tr></thead>
+      <tbody>
+        ${acoes.slice(0, 10).map((a, i) => {
+          const prioLabel = a.score > 2 ? '🔴 Urgente' : a.score > 1 ? '🟡 Médio' : '🟢 Baixo';
+          return `<tr>
+            <td>${i+1}</td>
+            <td><strong>${esc(a.topico)}</strong> <span style="font-size:0.65rem;color:var(--muted);">${a.area}</span></td>
+            <td>${a.freq.toFixed(1)}q/prova</td>
+            <td>${a.pct !== null ? a.pct.toFixed(0) + '%' : '—'}</td>
+            <td>${prioLabel}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
 }
 
 function editarGap(cell, topico, simId) {
@@ -1205,7 +1490,7 @@ function editarGapAcao(cell, topico) {
 // =============================================================
 const CHECKLIST_TEMPLATE = {
   'S1': [
-    { task: 'Simulado com prova 2024 (4h cronometrado)', essencial: true },
+    { task: 'Simulado 1 completo (4h cronometrado)', essencial: true },
     { task: 'Corrigir com gabarito — anotar notas', essencial: true },
     { task: 'Análise de erros (classificar cada)', essencial: false },
     { task: 'Montar matriz fraqueza/força', essencial: false },
@@ -1214,7 +1499,7 @@ const CHECKLIST_TEMPLATE = {
   'S2': [
     { task: 'Sessão 1 — pior tópico Fundamentos', essencial: true },
     { task: 'Sessão 2 — 2º pior tópico Fundamentos', essencial: true },
-    { task: 'Simulado com prova 2023 (4h)', essencial: true },
+    { task: 'Simulado 2 completo (4h)', essencial: true },
     { task: 'Corrigir simulado 2023', essencial: false },
     { task: 'Comparar evolução Fundamentos', essencial: false },
     { task: 'Revisar 1 tópico fraco de Matemática', essencial: false },
@@ -1224,16 +1509,16 @@ const CHECKLIST_TEMPLATE = {
     { task: 'Sessão 2 Matemática (Probabilidade)', essencial: true },
     { task: 'Sessão 3 Tecnologia (BD / IA)', essencial: true },
     { task: 'Sessão 4 Tecnologia (Eng.SW / Redes)', essencial: true },
-    { task: 'Simulado com prova 2019 (4h)', essencial: false },
-    { task: 'Corrigir simulado 2019', essencial: false },
-    { task: '20 questões avulsas 2018 Mat+Tec', essencial: false },
+    { task: 'Simulado 3 completo (4h)', essencial: false },
+    { task: 'Corrigir simulado 3', essencial: false },
+    { task: '20 questões avulsas de Mat + Tec', essencial: false },
   ],
   'S4': [
     { task: 'Refazer TODAS erradas dos 3 simulados', essencial: true },
     { task: 'Sessão 1 — tópico crônico 1', essencial: true },
     { task: 'Sessão 2 — tópico crônico 2', essencial: true },
-    { task: 'Simulado com prova 2018 (4h)', essencial: false },
-    { task: 'Corrigir simulado 2018', essencial: false },
+    { task: 'Simulado 4 completo (4h)', essencial: false },
+    { task: 'Corrigir simulado 4', essencial: false },
     { task: 'Treinar estratégia de chute', essencial: false },
   ],
   'S5': [
@@ -1359,8 +1644,24 @@ function removerErro(id) {
 
 function renderizarErros() {
   const container = document.getElementById('erros-lista');
-  if (data.erros.length === 0) {
-    container.innerHTML = '<p style="color:var(--muted);">Nenhum erro registrado ainda.</p>';
+  const filtro = document.getElementById('filtro-erro-simulado');
+
+  // Atualiza opções do filtro
+  const selectedValue = filtro ? filtro.value : '';
+  if (filtro) {
+    filtro.innerHTML = '<option value="">Todos os simulados</option>' +
+      data.simulados.map(s => `<option value="${s.id}" ${s.id === selectedValue ? 'selected' : ''}>${esc(s.nome)}</option>`).join('');
+  }
+
+  // Filtra erros
+  let errosFiltrados = data.erros;
+  if (filtro && filtro.value) {
+    errosFiltrados = data.erros.filter(e => e.simuladoId === filtro.value);
+  }
+
+  if (errosFiltrados.length === 0) {
+    container.innerHTML = '<p style="color:var(--muted);">Nenhum erro registrado' +
+      (filtro && filtro.value ? ' neste simulado' : '') + '.</p>';
     return;
   }
 
@@ -1373,7 +1674,7 @@ function renderizarErros() {
     <table>
       <thead><tr><th>Data</th><th>Sim.</th><th>Q#</th><th>Tópico</th><th>Tipo</th><th>Descrição</th><th></th></tr></thead>
       <tbody>
-        ${data.erros.map(e => `
+        ${errosFiltrados.map(e => `
           <tr>
             <td style="font-size:0.75rem;">${e.data ? e.data.slice(0,10) : ''}</td>
             <td style="font-size:0.75rem;">${esc(simNome(e.simuladoId))}</td>
@@ -1389,19 +1690,222 @@ function renderizarErros() {
 }
 
 // =============================================================
-// FÓRMULAS
+// NOTAS (Markdown + LaTeX)
 // =============================================================
-['form-math', 'form-fund', 'form-tec'].forEach((id, i) => {
-  const keys = ['matematica', 'fundamentos', 'tecnologia'];
-  const el = document.getElementById(id);
-  el.value = data.formulas[keys[i]] || '';
+const AREA_CORES = { Matemática: 'var(--blue)', Fundamentos: 'var(--purple)', Tecnologia: 'var(--cyan)' };
+let notaAtiva = null;
 
-  el.addEventListener('blur', () => {
-    data.formulas[keys[i]] = el.value;
+function migrarFormulas() {
+  if (data.notas.length === 0 && (data.formulas?.matematica || data.formulas?.fundamentos || data.formulas?.tecnologia)) {
+    if (data.formulas.matematica) data.notas.push({ id: uid(), titulo: 'Matemática', area: 'Matemática', conteudo: data.formulas.matematica, criadoEm: Date.now(), atualizadoEm: Date.now() });
+    if (data.formulas.fundamentos) data.notas.push({ id: uid(), titulo: 'Fundamentos', area: 'Fundamentos', conteudo: data.formulas.fundamentos, criadoEm: Date.now(), atualizadoEm: Date.now() });
+    if (data.formulas.tecnologia) data.notas.push({ id: uid(), titulo: 'Tecnologia', area: 'Tecnologia', conteudo: data.formulas.tecnologia, criadoEm: Date.now(), atualizadoEm: Date.now() });
+    data.formulas = { matematica: '', fundamentos: '', tecnologia: '' };
     saveData();
-    scheduleSync();
+  }
+}
+
+function renderizarNotas() {
+  migrarFormulas();
+  const listDiv = document.getElementById('note-list');
+  if (!listDiv) return;
+
+  listDiv.innerHTML = data.notas.map(n => {
+    const activeClass = notaAtiva === n.id ? ' active' : '';
+    return `<div class="note-list-item${activeClass}" onclick="abrirNota('${n.id}')">
+      <span>${esc(n.titulo || 'Sem título')}</span>
+      <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();removerNota('${n.id}')" title="Excluir">×</button>
+    </div>`;
+  }).join('');
+
+  if (notaAtiva) {
+    const n = data.notas.find(n => n.id === notaAtiva);
+    if (n) renderizarEditorNota(n);
+    else { notaAtiva = null; renderizarEditorNota(null); }
+  }
+}
+
+function novaNota() {
+  const areas = ['Matemática', 'Fundamentos', 'Tecnologia'];
+  const area = areas[data.notas.length % 3];
+  const nota = { id: uid(), titulo: 'Nova nota', area, conteudo: '', criadoEm: Date.now(), atualizadoEm: Date.now() };
+  data.notas.push(nota);
+  saveData();
+  notaAtiva = nota.id;
+  renderizarNotas();
+}
+
+function abrirNota(id) {
+  notaAtiva = id;
+  renderizarNotas();
+}
+
+function removerNota(id) {
+  if (!confirm('Excluir esta nota?')) return;
+  data.notas = data.notas.filter(n => n.id !== id);
+  if (notaAtiva === id) notaAtiva = null;
+  saveData();
+  renderizarNotas();
+  scheduleSync();
+}
+
+function renderizarEditorNota(nota) {
+  const panel = document.getElementById('note-editor-panel');
+  if (!panel) return;
+
+  if (!nota) {
+    panel.innerHTML = '<p style="color:var(--muted);text-align:center;padding:3rem 0;">Selecione ou crie uma nota para começar.</p>';
+    return;
+  }
+
+  const cor = AREA_CORES[nota.area] || 'var(--muted)';
+  panel.innerHTML = `
+    <div style="display:flex;gap:0.5rem;align-items:center;">
+      <input type="text" id="nota-titulo" value="${esc(nota.titulo)}" placeholder="Título da nota" style="font-weight:600;flex:1;" onchange="salvarNotaCampo()">
+      <select id="nota-area" onchange="salvarNotaCampo()" style="width:auto;min-width:110px;color:${cor};">
+        <option value="Matemática" ${nota.area==='Matemática'?'selected':''}>Matemática</option>
+        <option value="Fundamentos" ${nota.area==='Fundamentos'?'selected':''}>Fundamentos</option>
+        <option value="Tecnologia" ${nota.area==='Tecnologia'?'selected':''}>Tecnologia</option>
+      </select>
+      <button class="btn btn-sm" id="btn-toggle-preview" onclick="togglePreview()">👁 Preview</button>
+      <button class="btn btn-sm btn-primary" onclick="salvarNotaManual()">💾 Salvar</button>
+    </div>
+    <textarea id="nota-conteudo" placeholder="Escreva em Markdown...&#10;&#10;## Fórmulas&#10;&#10;Inline: $O(n \\log n)$&#10;&#10;Bloco: $$\\int_0^\\infty e^{-x} dx = 1$$" oninput="salvarNotaCampo()">${esc(nota.conteudo)}</textarea>
+    <div class="note-preview" id="nota-preview" style="display:none;"></div>
+  `;
+
+  // Auto-save com debounce
+  let saveTimeout;
+  window._notaSaveTimeout = saveTimeout;
+}
+
+let _showPreview = false;
+function togglePreview() {
+  _showPreview = !_showPreview;
+  const ta = document.getElementById('nota-conteudo');
+  const preview = document.getElementById('nota-preview');
+  const btn = document.getElementById('btn-toggle-preview');
+  if (!ta || !preview) return;
+
+  if (_showPreview) {
+    ta.style.display = 'none';
+    preview.style.display = 'block';
+    btn.textContent = '✏️ Editar';
+    renderizarPreview(preview, ta.value);
+  } else {
+    ta.style.display = '';
+    preview.style.display = 'none';
+    btn.textContent = '👁 Preview';
+  }
+}
+
+function renderizarPreview(el, md) {
+  // Render markdown
+  const html = marked.parse(md || '');
+  el.innerHTML = html;
+  // Render KaTeX
+  renderMathInElement(el, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false },
+    ],
+    throwOnError: false,
   });
-});
+}
+
+function salvarNotaCampo() {
+  const n = data.notas.find(n => n.id === notaAtiva);
+  if (!n) return;
+  const tituloEl = document.getElementById('nota-titulo');
+  const areaEl = document.getElementById('nota-area');
+  const conteudoEl = document.getElementById('nota-conteudo');
+  if (tituloEl) n.titulo = tituloEl.value;
+  if (areaEl) n.area = areaEl.value;
+  if (conteudoEl) n.conteudo = conteudoEl.value;
+  n.atualizadoEm = Date.now();
+  saveData();
+  scheduleSync();
+}
+
+function salvarNotaManual() {
+  salvarNotaCampo();
+  // Atualiza a lista lateral
+  renderizarNotas();
+  toast('Nota salva! 💾');
+}
+
+function baixarNotasPDF() {
+  if (data.notas.length === 0) { toast('Nenhuma nota para baixar.', 'error'); return; }
+
+  // Agrupa por área
+  const porArea = { Matemática: [], Fundamentos: [], Tecnologia: [] };
+  data.notas.forEach(n => {
+    const area = n.area || 'Tecnologia';
+    if (porArea[area]) porArea[area].push(n);
+  });
+
+  // Converte markdown para HTML e renderiza LaTeX inline (usando KaTeX se disponível)
+  let html = `<html><head><meta charset="UTF-8">
+    <title>POSCOMP — Notas e Fórmulas</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css">
+    <style>
+      body { font-family: -apple-system, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; line-height: 1.7; }
+      h1 { border-bottom: 2px solid #333; padding-bottom: 0.5rem; }
+      h2 { color: #555; margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: 0.3rem; }
+      h3 { color: #333; margin-top: 1.5rem; }
+      .nota { margin: 1.5rem 0; padding: 1rem; border-left: 4px solid #06b6d4; background: #f8f8f8; border-radius: 0 8px 8px 0; }
+      .nota h4 { margin: 0 0 0.5rem; color: #06b6d4; }
+      pre { background: #f0f0f0; padding: 0.75rem; border-radius: 6px; overflow-x: auto; }
+      code { background: #f0f0f0; padding: 0.15rem 0.3rem; border-radius: 3px; font-size: 0.9em; }
+      pre code { background: none; padding: 0; }
+      blockquote { border-left: 3px solid #ccc; padding-left: 0.75rem; color: #666; margin: 0.5rem 0; }
+      table { border-collapse: collapse; width: 100%; margin: 0.5rem 0; }
+      th, td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; }
+      th { background: #f0f0f0; }
+      @media print { body { margin: 0; } .nota { break-inside: avoid; } }
+    </style></head><body>
+    <h1>📐 POSCOMP — Notas e Fórmulas</h1>
+    <p><em>Gerado em ${new Date().toLocaleDateString('pt-BR')}</em></p>`;
+
+  const areaTitulos = { Matemática: '📊 Matemática', Fundamentos: '💻 Fundamentos', Tecnologia: '🔧 Tecnologia' };
+  ['Matemática', 'Fundamentos', 'Tecnologia'].forEach(area => {
+    const notas = porArea[area];
+    if (notas.length === 0) return;
+    html += `<h2>${areaTitulos[area]}</h2>`;
+    notas.forEach(n => {
+      html += `<div class="nota"><h4>${esc(n.titulo || 'Sem título')}</h4>`;
+      // Render markdown basic (simplified — full marked available via CDN, but for PDF we use simple HTML)
+      let md = (n.conteudo || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      // Basic markdown → HTML for PDF
+      md = md.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+      md = md.replace(/^## (.+)$/gm, '<h4>$1</h4>');
+      md = md.replace(/^# (.+)$/gm, '<h3>$1</h3>');
+      md = md.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      md = md.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      md = md.replace(/`([^`]+)`/g, '<code>$1</code>');
+      md = md.replace(/^- (.+)$/gm, '<li>$1</li>');
+      md = md.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+      md = md.replace(/\n\n/g, '</p><p>');
+      md = '<p>' + md + '</p>';
+      // Preserve LaTeX blocks
+      md = md.replace(/\$\$(.+?)\$\$/g, '<div style="text-align:center;margin:0.5rem 0;">$$$1$$</div>');
+      md = md.replace(/\$(.+?)\$/g, '\\($1\\)');
+      html += md + '</div>';
+    });
+  });
+
+  html += `</body></html>`;
+
+  // Cria blob e dispara download. Como PDF via print: abre em nova aba com print dialog
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const w = window.open(url, '_blank');
+  if (w) {
+    w.onload = () => { w.print(); };
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  toast('Abrindo para impressão. Salve como PDF no diálogo.');
+}
 
 // =============================================================
 // ESTATÍSTICAS COM FILTRO
@@ -1460,36 +1964,174 @@ function renderizarEstatisticas() {
   document.getElementById('stat-n-questoes').textContent = totalGeral;
   document.getElementById('stat-n-anos').textContent = nAnos;
 
-  // Top 10
+  // === Gráfico de barras (Top 10) ===
   const top10 = todosTopicos.slice(0, 10);
-  document.getElementById('stats-top10').innerHTML = top10.map((t, i) => `
-    <tr>
-      <td>${i + 1}</td>
-      <td><strong>${esc(t.topico)}</strong></td>
-      <td><span class="badge badge-b">${t.area}</span></td>
-      <td>${t.total}q</td>
-      <td>${t.media_por_prova}/prova</td>
-      <td>${(100 * t.total / Math.max(totalGeral, 1)).toFixed(1)}%</td>
-    </tr>
-  `).join('');
+  const areaColors = { Matemática: '#3b82f6', Fundamentos: '#8b5cf6', Tecnologia: '#06b6d4' };
 
-  // Por área
+  if (window._barChart) window._barChart.destroy();
+  const barCtx = document.getElementById('chart-barras');
+  if (barCtx) {
+    window._barChart = new Chart(barCtx, {
+      type: 'bar',
+      data: {
+        labels: top10.map(t => t.topico),
+        datasets: [{
+          label: 'Total de questões',
+          data: top10.map(t => t.total),
+          backgroundColor: top10.map(t => areaColors[t.area] + '99'),
+          borderColor: top10.map(t => areaColors[t.area]),
+          borderWidth: 1,
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+          y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 11 } } }
+        }
+      }
+    });
+  }
+
+  // === Linha de evolução: popula select ===
+  const linhaSel = document.getElementById('chart-linha-topico');
+  if (linhaSel) {
+    linhaSel.innerHTML = todosTopicos.map(t => `<option value="${esc(t.topico)}">${esc(t.topico)}</option>`).join('');
+  }
+
+  // Salva dados para uso na linha e no heatmap
+  window._estatData = { todosTopicos, anosNoRange, nAnos, totalGeral, inicio, fim };
+  renderizarLinha();
+  renderizarHeatmap();
+
+  // === Tabelas por área com tendência ===
   const areasDiv = document.getElementById('stats-por-area');
   areasDiv.innerHTML = ['Matemática', 'Fundamentos', 'Tecnologia'].map(area => {
     const topicosArea = todosTopicos.filter(t => t.area === area);
     const cores = { Matemática: 'var(--blue)', Fundamentos: 'var(--purple)', Tecnologia: 'var(--cyan)' };
+
+    function calcTrend(t) {
+      const years = Object.entries(t.por_ano || {}).filter(([y]) => y >= inicio && y <= fim).sort((a,b) => a[0]-b[0]);
+      if (years.length < 3) return '→';
+      const recent = years.slice(-3);
+      const first = recent[0][1];
+      const last = recent[recent.length-1][1];
+      if (last > first * 1.2) return '↗';
+      if (last < first * 0.8) return '↘';
+      return '→';
+    }
+
     return `<div>
       <h4 style="color:${cores[area]};margin-bottom:0.5rem;">${area.toUpperCase()}</h4>
-      <table>
-        <thead><tr><th>Tópico</th><th>Total</th><th>Média</th></tr></thead>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Tópico</th><th>Total</th><th>Média</th><th>Tend.</th></tr></thead>
         <tbody>
           ${topicosArea.map(t => `
-            <tr><td>${esc(t.topico)}</td><td>${t.total}q</td><td>${t.media_por_prova}/prova</td></tr>
+            <tr>
+              <td style="font-size:0.8rem;">${esc(t.topico)}</td>
+              <td>${t.total}q</td>
+              <td>${t.media_por_prova}/prova</td>
+              <td style="font-size:1rem;">${calcTrend(t)}</td>
+            </tr>
           `).join('')}
         </tbody>
-      </table>
+      </table></div>
     </div>`;
   }).join('');
+}
+
+function renderizarLinha() {
+  if (!window._estatData) return;
+  const { todosTopicos, anosNoRange, inicio, fim } = window._estatData;
+  const sel = document.getElementById('chart-linha-topico');
+  if (!sel) return;
+  const topicoNome = sel.value;
+  const t = todosTopicos.find(t => t.topico === topicoNome);
+  if (!t) return;
+
+  const years = anosNoRange.filter(y => y >= inicio && y <= fim).sort();
+  const data = years.map(y => (t.por_ano || {})[y] || 0);
+
+  if (window._lineChart) window._lineChart.destroy();
+  const ctx = document.getElementById('chart-linha');
+  if (!ctx) return;
+  window._lineChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [{
+        label: topicoNome,
+        data: data,
+        borderColor: '#06b6d4',
+        backgroundColor: '#06b6d433',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 4,
+        pointBackgroundColor: '#06b6d4',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', maxTicksLimit: 15 } },
+        y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' }, beginAtZero: true, title: { display: true, text: 'Questões', color: '#94a3b8' } }
+      }
+    }
+  });
+}
+
+function renderizarHeatmap() {
+  if (!window._estatData) return;
+  const { todosTopicos, anosNoRange, inicio, fim } = window._estatData;
+  const container = document.getElementById('heatmap-container');
+  if (!container) return;
+
+  const anosVisiveis = anosNoRange.filter(y => y >= inicio && y <= fim).sort();
+  if (anosVisiveis.length === 0) { container.innerHTML = ''; return; }
+
+  // Limita a 15 anos mais recentes para caber na tela
+  const anosMostrar = anosVisiveis.length > 15 ? anosVisiveis.slice(-15) : anosVisiveis;
+
+  // Pega max value para escala de cores
+  let maxVal = 0;
+  todosTopicos.forEach(t => {
+    anosMostrar.forEach(y => {
+      const v = (t.por_ano || {})[y] || 0;
+      if (v > maxVal) maxVal = v;
+    });
+  });
+  if (maxVal === 0) maxVal = 1;
+
+  function heatColor(val) {
+    const intensity = val / maxVal;
+    if (intensity === 0) return 'rgba(255,255,255,0.02)';
+    const r = Math.round(6 + 190 * intensity);
+    const g = Math.round(182 - 170 * intensity);
+    const b = Math.round(212 - 200 * intensity);
+    return `rgba(${r},${g},${b},${0.1 + 0.8 * intensity})`;
+  }
+
+  let html = '<table style="font-size:0.72rem;"><thead><tr><th style="min-width:100px;">Tópico</th>';
+  anosMostrar.forEach(y => { html += `<th style="text-align:center;font-size:0.65rem;">${y}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  todosTopicos.forEach(t => {
+    html += `<tr><td style="font-size:0.75rem;">${esc(t.topico)}</td>`;
+    anosMostrar.forEach(y => {
+      const val = (t.por_ano || {})[y] || 0;
+      html += `<td style="text-align:center;background:${heatColor(val)};font-size:0.7rem;" title="${t.topico} ${y}: ${val} questões">${val || ''}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
 }
 
 // Presets
@@ -1517,13 +2159,118 @@ document.querySelectorAll('.preset-btn').forEach(btn => {
 });
 
 // =============================================================
+// CRYPTO UTILITIES (Web Crypto API — nativo do navegador)
+// =============================================================
+async function sha256(text) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function deriveKey(pin, salt) {
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', encoder.encode(pin), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: salt, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+async function encryptWithPin(pin, plaintext) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(pin, salt);
+  const encoder = new TextEncoder();
+  const encrypted = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv: iv },
+    key,
+    encoder.encode(plaintext)
+  );
+  return {
+    salt: Array.from(salt),
+    iv: Array.from(iv),
+    data: Array.from(new Uint8Array(encrypted)),
+  };
+}
+
+async function decryptWithPin(pin, encrypted) {
+  const salt = new Uint8Array(encrypted.salt);
+  const iv = new Uint8Array(encrypted.iv);
+  const data = new Uint8Array(encrypted.data);
+  const key = await deriveKey(pin, salt);
+  const decrypted = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: iv },
+    key,
+    data
+  );
+  return new TextDecoder().decode(decrypted);
+}
+
+// =============================================================
 // GIST SYNC
 // =============================================================
 let syncTimeout = null;
 
+async function findExistingGist(token) {
+  // Busca Gists do usuário e encontra o do POSCOMP
+  try {
+    const resp = await fetch('https://api.github.com/gists?per_page=100', {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+      },
+    });
+    if (!resp.ok) return null;
+    const gists = await resp.json();
+    for (const gist of gists) {
+      if (gist.description === 'POSCOMP Dashboard Data' && gist.files?.['poscomp_data.json']) {
+        return gist.id;
+      }
+    }
+  } catch(e) { console.warn('findExistingGist error:', e); }
+  return null;
+}
+
 function scheduleSync() {
   if (syncTimeout) clearTimeout(syncTimeout);
   syncTimeout = setTimeout(syncToGist, 2000);
+}
+
+function configurarSync() {
+  document.getElementById('modal-token').classList.add('show');
+}
+
+function updateSyncUI() {
+  const token = localStorage.getItem('poscomp_token');
+  const badge = document.getElementById('sync-badge');
+  const btnConfig = document.getElementById('btn-config-sync');
+  const btnSync = document.getElementById('btn-sync');
+  const btnPin = document.getElementById('btn-pin-restore');
+
+  if (!token) {
+    badge.className = 'sync-indicator sync-offline';
+    badge.textContent = '⚪ Offline';
+    if (btnConfig) btnConfig.style.display = '';
+    if (btnSync) btnSync.style.display = 'none';
+  } else if (data.gistId) {
+    badge.className = 'sync-indicator sync-ok';
+    const lastSync = data._lastModified ? new Date(data._lastModified).toLocaleTimeString() : '';
+    badge.textContent = lastSync ? `🟢 Sync ${lastSync}` : '🟢 Sync OK';
+    if (btnConfig) btnConfig.style.display = 'none';
+    if (btnSync) btnSync.style.display = '';
+  } else {
+    badge.className = 'sync-indicator sync-pending';
+    badge.textContent = '🟡 Token OK (sem sync)';
+    if (btnConfig) btnConfig.style.display = 'none';
+    if (btnSync) btnSync.style.display = '';
+  }
 }
 
 async function syncNow() {
@@ -1533,7 +2280,9 @@ async function syncNow() {
     return;
   }
   if (syncTimeout) clearTimeout(syncTimeout);
+  toast('Sincronizando...');
   await syncToGist();
+  updateSyncUI();
 }
 
 async function syncToGist() {
@@ -1548,6 +2297,15 @@ async function syncToGist() {
 
     const content = JSON.stringify(data, null, 2);
     let gistId = data.gistId;
+
+    // Se não tem gistId, tenta achar Gist existente antes de criar novo
+    if (!gistId) {
+      gistId = await findExistingGist(token);
+      if (gistId) {
+        data.gistId = gistId;
+        saveData();
+      }
+    }
 
     if (!gistId) {
       // Cria novo Gist
@@ -1574,7 +2332,6 @@ async function syncToGist() {
         }),
       });
       if (resp.status === 404) {
-        // Gist foi deletado, recria
         data.gistId = null;
         saveData();
         await syncToGist();
@@ -1583,18 +2340,28 @@ async function syncToGist() {
       if (!resp.ok) throw new Error(`Update gist: ${resp.status}`);
     }
 
-    document.getElementById('sync-badge').className = 'sync-indicator sync-ok';
-    document.getElementById('sync-badge').textContent = '🟢 Sync OK';
+    updateSyncUI();
   } catch (e) {
     console.warn('Sync error:', e);
     document.getElementById('sync-badge').className = 'sync-indicator sync-offline';
-    document.getElementById('sync-badge').textContent = '🔴 Offline';
+    document.getElementById('sync-badge').textContent = '🔴 Erro';
   }
 }
 
 async function loadFromGist() {
   const token = localStorage.getItem('poscomp_token');
-  if (!token || !data.gistId) return;
+  if (!token) return;
+
+  // Se não tem gistId, tenta achar Gist existente
+  if (!data.gistId) {
+    const gistId = await findExistingGist(token);
+    if (gistId) {
+      data.gistId = gistId;
+      saveData();
+    } else {
+      return; // Nenhum Gist encontrado, é primeira configuração
+    }
+  }
 
   try {
     const resp = await fetch(`https://api.github.com/gists/${data.gistId}`, {
@@ -1603,7 +2370,14 @@ async function loadFromGist() {
         'Accept': 'application/vnd.github.v3+json',
       },
     });
-    if (!resp.ok) return;
+    if (!resp.ok) {
+      if (resp.status === 404) {
+        // Gist não existe mais, limpa ID pra recriar
+        data.gistId = null;
+        saveData();
+      }
+      return;
+    }
 
     const gist = await resp.json();
     const file = gist.files?.['poscomp_data.json'];
@@ -1614,11 +2388,7 @@ async function loadFromGist() {
       data = { ...DEFAULT_DATA, ...remoteData };
       saveData();
       renderizarTudo();
-      document.getElementById('sync-badge').className = 'sync-indicator sync-ok';
-      document.getElementById('sync-badge').textContent = '🟢 Atualizado';
-      setTimeout(() => {
-        document.getElementById('sync-badge').textContent = '🟢 Sync OK';
-      }, 2000);
+      updateSyncUI();
     }
   } catch (e) {
     console.warn('Load from gist error:', e);
@@ -1630,8 +2400,116 @@ function configurarToken() {
   if (!token) { toast('Cole o token do GitHub.', 'error'); return; }
   localStorage.setItem('poscomp_token', token);
   fecharModal('modal-token');
-  toast('Token salvo! Sincronizando...');
-  syncNow();
+  toast('Procurando dados existentes...');
+  // Carrega do Gist (se existir) ou cria novo
+  loadFromGist().then(() => {
+    if (!data.gistId) {
+      toast('Nova configuração! Seus dados serão sincronizados.');
+    }
+    syncNow();
+    renderizarTudo();
+    updateSyncUI();
+    // Oferece criar PIN após configurar sync
+    setTimeout(() => {
+      if (!localStorage.getItem('poscomp_pin_set')) {
+        document.getElementById('modal-criar-pin').classList.add('show');
+      }
+    }, 1000);
+  });
+}
+
+// =============================================================
+// PIN SETUP & RESTORE
+// =============================================================
+async function setupPin() {
+  const pin = document.getElementById('pin-novo').value.trim();
+  const confirmar = document.getElementById('pin-confirmar').value.trim();
+
+  if (!pin || pin.length < 6) { toast('Digite um PIN de 6 dígitos.', 'error'); return; }
+  if (pin !== confirmar) { toast('Os PINs não conferem.', 'error'); return; }
+
+  const token = localStorage.getItem('poscomp_token');
+  if (!token) { toast('Configure a sincronização primeiro.', 'error'); return; }
+
+  try {
+    toast('Criptografando dados...');
+    const payload = JSON.stringify({ ...data, _githubToken: token, _version: 2 });
+    const encrypted = await encryptWithPin(pin, payload);
+    const pinHash = await sha256(pin);
+
+    const headers = {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+    };
+
+    const resp = await fetch('https://api.github.com/gists', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        description: `poscomp-pin:${pinHash}`,
+        public: true,
+        files: { 'poscomp_backup.enc': { content: JSON.stringify(encrypted) } },
+      }),
+    });
+
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const gist = await resp.json();
+    data._pinGistId = gist.id;
+    saveData();
+    localStorage.setItem('poscomp_pin_set', '1');
+    fecharModal('modal-criar-pin');
+    toast('PIN configurado! Agora restaure seus dados em qualquer dispositivo.');
+  } catch (e) {
+    console.error('setupPin error:', e);
+    toast('Erro ao configurar PIN: ' + e.message, 'error');
+  }
+}
+
+async function restoreWithPin() {
+  const pin = document.getElementById('pin-restore').value.trim();
+  const username = document.getElementById('pin-username').value.trim();
+
+  if (!pin || pin.length < 6) { toast('Digite o PIN de 6 dígitos.', 'error'); return; }
+  if (!username) { toast('Digite seu usuário do GitHub.', 'error'); return; }
+
+  try {
+    toast('Procurando dados salvos...');
+    const pinHash = await sha256(pin);
+
+    const resp = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}/gists?per_page=100`);
+    if (!resp.ok) throw new Error(`Usuário não encontrado (HTTP ${resp.status})`);
+
+    const gists = await resp.json();
+    const targetDesc = `poscomp-pin:${pinHash}`;
+    let backupGist = gists.find(g => g.description === targetDesc && g.files?.['poscomp_backup.enc']);
+
+    if (!backupGist) {
+      toast('Nenhum backup encontrado. Verifique o PIN e o usuário.', 'error');
+      return;
+    }
+
+    const rawUrl = backupGist.files['poscomp_backup.enc'].raw_url;
+    const fileResp = await fetch(rawUrl);
+    if (!fileResp.ok) throw new Error('Erro ao baixar backup');
+    const encrypted = await fileResp.json();
+
+    const plaintext = await decryptWithPin(pin, encrypted);
+    const restored = JSON.parse(plaintext);
+
+    data = { ...DEFAULT_DATA, ...restored };
+    if (restored._githubToken) {
+      localStorage.setItem('poscomp_token', restored._githubToken);
+    }
+    saveData();
+    fecharModal('modal-restore-pin');
+    renderizarTudo();
+    updateSyncUI();
+    toast('Dados restaurados! 🎉');
+  } catch (e) {
+    console.error('restoreWithPin error:', e);
+    toast('PIN incorreto ou erro ao restaurar.', 'error');
+  }
 }
 
 // =============================================================
@@ -1684,6 +2562,7 @@ function renderizarTudo() {
   renderizarErros();
   prepararFormErros();
   renderizarEstatisticas();
+  if (activeTab === 'formulas') renderizarNotas();
   updateCountdown();
 }
 
@@ -1691,18 +2570,14 @@ function renderizarTudo() {
 // INICIALIZAÇÃO
 // =============================================================
 document.addEventListener('DOMContentLoaded', async () => {
-  // Verifica se tem token configurado
   const token = localStorage.getItem('poscomp_token');
   if (token) {
     await loadFromGist();
-  }
-
-  // Botão de sync já está no onclick
-
-  // Se não tem token, mostra opção no canto
-  if (!token && !localStorage.getItem('poscomp_token_seen')) {
-    localStorage.setItem('poscomp_token_seen', '1');
-    // Não incomoda na primeira vez, deixa o usuário explorar
+  } else if (data.simulados.length === 0) {
+    // Sem token e sem dados locais — oferece restore por PIN
+    setTimeout(() => {
+      document.getElementById('modal-restore-pin').classList.add('show');
+    }, 500);
   }
 
   // Configura inputs dos modais para fechar com Escape
@@ -1720,6 +2595,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   renderizarTudo();
+  updateSyncUI();
 });
 
 // Limpa timeouts ao sair
