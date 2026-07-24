@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POSCOMP 2026 — Dashboard</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --purple: #8b5cf6;
+    --cyan: #06b6d4;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 1rem;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: linear-gradient(135deg, #1e293b 0%, #312e81 50%, #1e293b 100%);
+    border-radius: 16px;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+  }
+  .header h1 { font-size: 2rem; margin-bottom: 0.25rem; }
+  .header .subtitle { color: var(--muted); font-size: 1rem; }
+  .countdown {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+  .countdown .box {
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    text-align: center;
+    min-width: 70px;
+  }
+  .countdown .num { font-size: 1.75rem; font-weight: 700; }
+  .countdown .label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Sync indicator */
+  .sync-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    margin-left: 0.5rem;
+  }
+  .sync-ok { background: rgba(16,185,129,0.15); color: var(--green); }
+  .sync-pending { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .sync-offline { background: rgba(239,68,68,0.15); color: var(--red); }
+
+  /* Tab Navigation */
+  .tab-nav {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    padding: 0.6rem 1rem;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    transition: all 0.2s;
+    font-family: inherit;
+    border-bottom: 2px solid transparent;
+  }
+  .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .tab-btn.active {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+    background: rgba(6,182,212,0.08);
+  }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* Stats row */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+  }
+  .stat-card .big { font-size: 2.25rem; font-weight: 700; }
+  .stat-card .label { color: var(--muted); font-size: 0.8rem; margin-top: 0.25rem; }
+  .stat-math { border-left: 4px solid var(--blue); }
+  .stat-fund { border-left: 4px solid var(--purple); }
+  .stat-tec  { border-left: 4px solid var(--cyan); }
+  .stat-trend { font-size: 0.75rem; margin-top: 0.25rem; }
+  .trend-up { color: var(--green); }
+  .trend-down { color: var(--red); }
+
+  /* Section */
+  .section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .section h3 {
+    font-size: 1.05rem;
+    margin: 1.25rem 0 0.5rem;
+    color: var(--muted);
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0;
+    font-size: 0.85rem;
+  }
+  th, td {
+    padding: 0.5rem 0.65rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+  }
+  tr:hover td { background: rgba(255,255,255,0.03); }
+
+  /* Badges */
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  .badge-g { background: rgba(16,185,129,0.15); color: var(--green); }
+  .badge-y { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .badge-r { background: rgba(239,68,68,0.15); color: var(--red); }
+  .badge-b { background: rgba(59,130,246,0.15); color: var(--blue); }
+
+  /* Quadrants */
+  .quadrant {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 1rem 0;
+  }
+  .quad-cell {
+    background: var(--card);
+    padding: 1.25rem;
+  }
+  .quad-cell h4 { margin-bottom: 0.5rem; font-size: 0.9rem; }
+  .quad-cell ul { list-style: none; font-size: 0.8rem; padding-left: 0; }
+  .quad-cell li { padding: 0.2rem 0; }
+  .q-tl { border-left: 4px solid var(--green); }
+  .q-tr { border-left: 4px solid var(--yellow); }
+  .q-bl { border-left: 4px solid var(--muted); }
+  .q-br { border-left: 4px solid var(--red); }
+
+  /* Week cards */
+  .weeks { display: grid; gap: 0.75rem; }
+  .week {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+  }
+  .week-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.75rem;
+  }
+  .week-header h3 { margin: 0; color: var(--text); font-size: 1rem; }
+  .week-header .dates { color: var(--muted); font-size: 0.8rem; }
+  .week .objective { color: var(--muted); font-size: 0.8rem; margin-bottom: 0.75rem; font-style: italic; }
+  .tasks { list-style: none; }
+  .tasks li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    padding: 0.3rem 0;
+    font-size: 0.82rem;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .tasks li:last-child { border-bottom: none; }
+  .tasks .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+  .dot-red { background: var(--red); }
+  .dot-yellow { background: var(--yellow); }
+  .dot-muted { background: var(--border); }
+
+  /* Interactive elements */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .btn:hover { background: rgba(255,255,255,0.05); border-color: var(--muted); }
+  .btn-primary { background: var(--cyan); color: #000; border-color: var(--cyan); font-weight: 600; }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-danger { color: var(--red); border-color: var(--red); }
+  .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+
+  input, select, textarea {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 0.45rem 0.65rem;
+    font-size: 0.82rem;
+    font-family: inherit;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--cyan);
+    background: rgba(255,255,255,0.1);
+  }
+  input[type="checkbox"] { width: auto; margin-right: 0.35rem; accent-color: var(--cyan); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  .edit-cell { cursor: pointer; border-bottom: 1px dashed transparent; }
+  .edit-cell:hover { border-bottom-color: var(--cyan); }
+  .editable-input { width: 70px; padding: 0.25rem 0.4rem; font-size: 0.8rem; }
+
+  .progress-section { margin: 1rem 0; }
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.35rem 0;
+  }
+  .progress-label { width: 100px; font-size: 0.8rem; color: var(--muted); }
+  .progress-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+  .fill-math { background: var(--blue); }
+  .fill-fund { background: var(--purple); }
+  .fill-tec { background: var(--cyan); }
+  .fill-green { background: var(--green); }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+  }
+  .filter-bar label { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+  .filter-bar select { width: auto; min-width: 120px; }
+  .filter-presets { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+  .preset-btn {
+    padding: 0.3rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .preset-btn:hover, .preset-btn.active { color: var(--cyan); border-color: var(--cyan); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal h3 { margin-bottom: 1rem; }
+  .modal .form-group { margin-bottom: 0.75rem; }
+  .modal .form-group label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; }
+  .modal .actions { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: flex-end; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    z-index: 200;
+    transition: opacity 0.3s;
+  }
+  .toast-success { background: rgba(16,185,129,0.9); color: #000; }
+  .toast-error { background: rgba(239,68,68,0.9); color: #fff; }
+
+  /* Priority colors for gaps */
+  .gap-prio-M { background: rgba(239,68,68,0.2) !important; }
+  .gap-prio-N { background: rgba(245,158,11,0.15) !important; }
+  .gap-prio-B { background: rgba(16,185,129,0.1) !important; }
+
+  .contingency table { font-size: 0.82rem; }
+  .contingency td:first-child { white-space: nowrap; }
+
+  a { color: var(--cyan); }
+
+  @media (max-width: 768px) {
+    body { padding: 0.5rem; }
+    .stats { grid-template-columns: 1fr; }
+    .quadrant { grid-template-columns: 1fr; }
+    .countdown { flex-wrap: wrap; }
+    .tab-nav { gap: 0; }
+    .tab-btn { padding: 0.5rem 0.65rem; font-size: 0.75rem; }
+    table { font-size: 0.75rem; }
+    th, td { padding: 0.35rem 0.4rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="header">
+  <h1>📚 POSCOMP 2026</h1>
+  <p class="subtitle">Plano de Estudos — Nicole Petrica</p>
+  <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap;">
+    <div class="countdown">
+      <div class="box"><div class="num" id="days">39</div><div class="label">Dias</div></div>
+      <div class="box"><div class="num" id="hours">—</div><div class="label">Horas</div></div>
+      <div class="box"><div class="num">22</div><div class="label">Provas analisadas</div></div>
+      <div class="box"><div class="num" id="sim-count">0</div><div class="label">Simulados feitos</div></div>
+    </div>
+    <span class="sync-indicator sync-offline" id="sync-badge">⚪ Sync não configurado</span>
+  </div>
+</div>
+
+<!-- STATS ROW -->
+<div class="stats" id="stats-row">
+  <div class="stat-card stat-math">
+    <div class="big" id="stat-math">—</div>
+    <div class="label">Matemática /20 — últ. simulado</div>
+  </div>
+  <div class="stat-card stat-fund">
+    <div class="big" id="stat-fund">—</div>
+    <div class="label">Fundamentos /30 — últ. simulado</div>
+  </div>
+  <div class="stat-card stat-tec">
+    <div class="big" id="stat-tec">—</div>
+    <div class="label">Tecnologia /20 — últ. simulado</div>
+  </div>
+</div>
+
+<!-- TAB NAVIGATION -->
+<nav class="tab-nav" id="tab-nav">
+  <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+  <button class="tab-btn" data-tab="simulados">📝 Simulados</button>
+  <button class="tab-btn" data-tab="gaps">🎯 Matriz de Gaps</button>
+  <button class="tab-btn" data-tab="checklist">✅ Checklist</button>
+  <button class="tab-btn" data-tab="erros">🔍 Erros</button>
+  <button class="tab-btn" data-tab="formulas">📐 Fórmulas</button>
+  <button class="tab-btn" data-tab="estatisticas">📈 Estatísticas</button>
+</nav>
+
+<!-- ================================================================ -->
+<!-- TAB: DASHBOARD -->
+<!-- ================================================================ -->
+<div class="tab-pane active" id="pane-dashboard">
+
+<!-- Matriz Esforço × Retorno -->
+<div class="section">
+  <h2>🎯 Matriz Esforço × Retorno</h2>
+  <p style="color:var(--muted);margin-bottom:1rem;font-size:0.85rem;">Adaptada ao seu perfil: Eng. de Computação + Data Scientist no iFood</p>
+
+  <div class="quadrant">
+    <div class="quad-cell q-tl">
+      <h4 style="color:var(--green);">🟢 Low Hanging Fruits</h4>
+      <p style="color:var(--muted);font-size:0.75rem;margin-bottom:0.5rem;">Alto retorno, baixo esforço pra você</p>
+      <ul>
+        <li><strong>Lógica / Booleana</strong></li>
+        <li><strong>Linguagens de Programação</strong></li>
+        <li><strong>Estruturas de Dados</strong></li>
+        <li><strong>Banco de Dados</strong></li>
+        <li><strong>IA / Machine Learning</strong></li>
+        <li><strong>Engenharia de Software</strong></li>
+      </ul>
+      <p style="margin-top:0.5rem;font-size:0.75rem;color:var(--green);"><strong>Mirar 80%+</strong></p>
+    </div>
+    <div class="quad-cell q-tr">
+      <h4 style="color:var(--yellow);">🟡 Investimento Médio</h4>
+      <p style="color:var(--muted);font-size:0.75rem;margin-bottom:0.5rem;">Retorno bom, precisa revisar</p>
+      <ul>
+        <li><strong>Complexidade de Algoritmos</strong></li>
+        <li><strong>Redes de Computadores</strong></li>
+        <li><strong>Sistemas Operacionais</strong></li>
+        <li><strong>Probabilidade e Estatística</strong></li>
+        <li><strong>Combinatória</strong></li>
+        <li><strong>Sistemas Distribuídos</strong></li>
+      </ul>
+      <p style="margin-top:0.5rem;font-size:0.75rem;color:var(--yellow);"><strong>Mirar 60-70%</strong></p>
+    </div>
+    <div class="quad-cell q-bl">
+      <h4 style="color:var(--muted);">⚪ Vantagem existente</h4>
+      <p style="color:var(--muted);font-size:0.75rem;margin-bottom:0.5rem;">Seus diferenciais</p>
+      <ul>
+        <li><strong>BD + IA + Eng.SW</strong> — vive no trabalho</li>
+        <li><strong>Lógica booleana</strong> — base Eng. Comp.</li>
+        <li><strong>Est. Dados + Complexidade</strong> — base do curso</li>
+      </ul>
+      <p style="margin-top:0.5rem;font-size:0.75rem;">Garantindo 80%+ aqui = <strong>base sólida</strong></p>
+    </div>
+    <div class="quad-cell q-br">
+      <h4 style="color:var(--red);">🔴 Exige Mais Esforço</h4>
+      <p style="color:var(--muted);font-size:0.75rem;margin-bottom:0.5rem;">Enferrujou ou é novo</p>
+      <ul>
+        <li><strong>Álgebra Linear</strong></li>
+        <li><strong>Cálculo</strong></li>
+        <li><strong>Linguagens Formais / Autômatos</strong></li>
+        <li><strong>Compiladores</strong></li>
+        <li><strong>Lógica Digital / Circuitos</strong></li>
+        <li><strong>Computação Gráfica</strong></li>
+      </ul>
+      <p style="margin-top:0.5rem;font-size:0.75rem;color:var(--red);"><strong>Mirar 50-60%</strong></p>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:1rem;padding:0.75rem;background:rgba(139,92,246,0.1);border-radius:8px;font-size:0.85rem;">
+    <strong>Distribuição do esforço:</strong> 60% 🟢 &nbsp;|&nbsp; 25% 🟡 &nbsp;|&nbsp; 15% 🔴
+  </div>
+
+  <h3>⚠️ Tópicos-armadilha</h3>
+  <table>
+    <thead><tr><th>Tópico</th><th>Por que é perigoso</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Linguagens de Programação</strong></td><td>MUITO cobrada. Parece fácil mas tem pegadinhas de C, ponteiros, rastreamento de execução.</td></tr>
+      <tr><td><strong>Teoria dos Grafos</strong></td><td>Aparece em TODAS as provas mas pode mudar de seção.</td></tr>
+      <tr><td><strong>Lógica/Booleana</strong></td><td>Historicamente frequente e com enunciados longos.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Cronograma -->
+<div class="section">
+  <h2>📅 Cronograma</h2>
+  <p style="color:var(--muted);margin-bottom:0.75rem;font-size:0.85rem;">
+    🔴 Essencial &nbsp;|&nbsp; 🟡 Importante &nbsp;|&nbsp; ⚪ Se der &nbsp;|&nbsp; Meta: 6-8h/semana
+  </p>
+
+  <div class="weeks">
+    <div class="week">
+      <div class="week-header"><h3>Semana 1 — Diagnóstico</h3><span class="dates">21–26 Jul</span></div>
+      <p class="objective">Saber exatamente onde você está. Sem isso, o resto é tiro no escuro.</p>
+      <ul class="tasks">
+        <li><span class="dot dot-red"></span> <strong>Simulado com prova 2024</strong> (4h cronometrado)</li>
+        <li><span class="dot dot-red"></span> <strong>Corrigir com gabarito</strong> — anotar por tópico</li>
+        <li><span class="dot dot-yellow"></span> <strong>Análise de erros</strong> — classificar cada</li>
+        <li><span class="dot dot-yellow"></span> Montar <strong>matriz fraqueza/força</strong></li>
+        <li><span class="dot dot-muted"></span> Refazer as 5 questões mais difíceis</li>
+      </ul>
+    </div>
+    <div class="week">
+      <div class="week-header"><h3>Semana 2 — Fundamentos</h3><span class="dates">27 Jul – 2 Ago</span></div>
+      <p class="objective">Atacar a área de maior peso.</p>
+      <ul class="tasks">
+        <li><span class="dot dot-red"></span> <strong>2 sessões</strong> nos 3 piores tópicos de Fundamentos</li>
+        <li><span class="dot dot-red"></span> <strong>Simulado com prova 2023</strong> (4h)</li>
+        <li><span class="dot dot-yellow"></span> Corrigir, atualizar matriz</li>
+        <li><span class="dot dot-yellow"></span> Comparar evolução Fundamentos</li>
+        <li><span class="dot dot-muted"></span> Revisar 1 tópico fraco de Matemática</li>
+      </ul>
+    </div>
+    <div class="week">
+      <div class="week-header"><h3>Semana 3 — Matemática + Tecnologia</h3><span class="dates">3–9 Ago</span></div>
+      <p class="objective">Cobrir as áreas que juntas valem mais da metade da prova.</p>
+      <ul class="tasks">
+        <li><span class="dot dot-red"></span> <strong>2 sessões de Matemática</strong></li>
+        <li><span class="dot dot-red"></span> <strong>2 sessões de Tecnologia</strong></li>
+        <li><span class="dot dot-yellow"></span> <strong>Simulado com prova 2019</strong> (4h)</li>
+        <li><span class="dot dot-yellow"></span> Corrigir, atualizar matriz</li>
+        <li><span class="dot dot-muted"></span> 20 questões avulsas da prova 2018</li>
+      </ul>
+    </div>
+    <div class="week">
+      <div class="week-header"><h3>Semana 4 — Fechando Lacunas</h3><span class="dates">10–16 Ago</span></div>
+      <p class="objective">Atacar o que ainda está frágil depois de 3 simulados.</p>
+      <ul class="tasks">
+        <li><span class="dot dot-red"></span> <strong>Refazer TODAS as erradas</strong> dos 3 simulados</li>
+        <li><span class="dot dot-red"></span> <strong>2 sessões</strong> nos tópicos crônicos</li>
+        <li><span class="dot dot-yellow"></span> <strong>Simulado com prova 2018</strong> (4h)</li>
+        <li><span class="dot dot-yellow"></span> Corrigir, atualizar matriz</li>
+        <li><span class="dot dot-muted"></span> Treinar estratégia de chute</li>
+      </ul>
+    </div>
+    <div class="week">
+      <div class="week-header"><h3>Semana 5 — Revisão + Ritmo</h3><span class="dates">17–23 Ago</span></div>
+      <p class="objective">Consolidar, não aprender. Ritmo de prova > conteúdo novo.</p>
+      <ul class="tasks">
+        <li><span class="dot dot-red"></span> <strong>Revisão de todas as erradas</strong> dos 4 simulados</li>
+        <li><span class="dot dot-red"></span> Criar <strong>1 página de fórmulas por área</strong> (à mão)</li>
+        <li><span class="dot dot-red"></span> <strong>Preparar setup técnico</strong> — Chrome, webcam, internet</li>
+        <li><span class="dot dot-yellow"></span> <strong>Mini-simulado</strong>: 35 questões em 2h</li>
+        <li><span class="dot dot-muted"></span> Última sessão no tópico que ainda derruba</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week" style="margin-top:1rem;border:1px dashed var(--border);background:rgba(139,92,246,0.05);">
+    <div class="week-header"><h3>🧘 Véspera</h3><span class="dates">24–29 Ago</span></div>
+    <p class="objective">Semana ZERO de estudo pesado. Só manutenção.</p>
+    <ul class="tasks">
+      <li><span class="dot dot-red"></span> Revisar as 1-páginas de fórmulas (30 min/dia máx)</li>
+      <li><span class="dot dot-red"></span> Dormir bem todos os dias</li>
+      <li><span class="dot dot-red"></span> <strong>29/08: NÃO estudar.</strong> Filme, comida boa, dormir cedo.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Dia da Prova -->
+<div class="section" style="background:rgba(16,185,129,0.08);">
+  <h2>🏁 Dia 30/08 — Prova</h2>
+  <table>
+    <tbody>
+      <tr><td><strong>Acordar</strong></td><td>2h antes</td></tr>
+      <tr><td><strong>Café da manhã</strong></td><td>Leve, água por perto</td></tr>
+      <tr><td><strong>Entrar no sistema</strong></td><td>60 min antes</td></tr>
+      <tr><td><strong>Material</strong></td><td>3 folhas de rascunho + caneta + documento</td></tr>
+      <tr><td><strong>Banheiro</strong></td><td>Antes de começar</td></tr>
+      <tr><td><strong>Tempo</strong></td><td>~3.4 min por questão. Passou de 4 min, marca palpite e volta</td></tr>
+      <tr><td><strong>Proibições</strong></td><td>Sem Ctrl+F, sem segunda tela, sem fone, sem celular</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Contingência -->
+<div class="section contingency">
+  <h2>🚨 E se eu atrasar?</h2>
+  <table>
+    <thead><tr><th>Cenário</th><th>O que fazer</th></tr></thead>
+    <tbody>
+      <tr><td>Perdeu 2 dias na semana</td><td>Blocos 🟡 viram ⚪. Só faça o 🔴 + simulado.</td></tr>
+      <tr><td>Não fez o simulado da semana</td><td>Faça na semana seguinte. Simulados são a ÚNICA coisa que não pode pular.</td></tr>
+      <tr><td>Perdeu a semana inteira</td><td>Pule os blocos 🟡. Mantenha simulados. Simulados > revisão.</td></tr>
+      <tr><td>Chegou na semana 4 sem ter feito nada</td><td>Faça os 4 simulados em 2 semanas. Esqueça os blocos de estudo.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div><!-- /dashboard -->
+
+<!-- ================================================================ -->
+<!-- TAB: SIMULADOS -->
+<!-- ================================================================ -->
+<div class="tab-pane" id="pane-simulados">
+<div class="section">
+  <h2>📝 Acompanhamento de Simulados</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Crie, edite e acompanhe seus simulados. Clique nas células para editar.</p>
+
+  <div id="simulados-table-container">
+    <table id="simulados-table">
+      <thead>
+        <tr>
+          <th>Simulado</th><th>Data</th><th>Total /70</th><th>Mat /20</th><th>Fund /30</th><th>Tec /20</th><th>Tempo</th><th>Obs</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="simulados-tbody"></tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+    <button class="btn btn-primary" onclick="abrirModalSimulado()">+ Novo Simulado</button>
+    <button class="btn" onclick="exportarDados()">📥 Exportar dados</button>
+    <button class="btn" onclick="importarDados()">📤 Importar dados</button>
+    <button class="btn" onclick="syncNow()" id="btn-sync">🔄 Sincronizar agora</button>
+  </div>
+
+  <div id="sim-stats" style="margin-top:1rem;font-size:0.85rem;color:var(--muted);"></div>
+</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- TAB: MATRIZ DE GAPS -->
+<!-- ================================================================ -->
+<div class="tab-pane" id="pane-gaps">
+<div class="section">
+  <h2>🎯 Matriz de Gaps por Tópico</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">
+    Preencha % de acerto para cada tópico em cada simulado. Ex: digite <code>67</code> para 67%.
+    <br>Prioridade automática: <span class="badge badge-r">M &lt;50%</span> <span class="badge badge-y">N 50-70%</span> <span class="badge badge-g">B &gt;70%</span>
+  </p>
+
+  <div style="overflow-x:auto;">
+    <table id="gaps-table">
+      <thead id="gaps-thead"></thead>
+      <tbody id="gaps-tbody"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- TAB: CHECKLIST -->
+<!-- ================================================================ -->
+<div class="tab-pane" id="pane-checklist">
+<div class="section">
+  <h2>✅ Checklist Semanal</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Marque as tarefas conforme completar. Progresso salvo automaticamente.</p>
+  <div id="checklist-container"></div>
+</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- TAB: ERROS -->
+<!-- ================================================================ -->
+<div class="tab-pane" id="pane-erros">
+<div class="section">
+  <h2>🔍 Classificação de Erros</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Registre cada erro para identificar padrões e focar o estudo.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 2fr;gap:1rem;">
+    <div style="background:rgba(255,255,255,0.03);padding:1rem;border-radius:8px;">
+      <h3 style="margin-top:0;">Novo erro</h3>
+      <div class="form-group"><label>Simulado</label><select id="err-simulado"></select></div>
+      <div class="form-group"><label>Questão #</label><input type="number" id="err-questao" min="1" max="70"></div>
+      <div class="form-group"><label>Tópico</label><select id="err-topico"></select></div>
+      <div class="form-group"><label>Tipo de erro</label><select id="err-tipo">
+        <option>Não sabia o conceito</option>
+        <option>Sabia mas errei (atenção)</option>
+        <option>Sabia mas demorei (>4 min)</option>
+        <option>Chutei certo (sorte)</option>
+      </select></div>
+      <div class="form-group"><label>Descrição</label><input type="text" id="err-desc" placeholder="O que aconteceu?"></div>
+      <button class="btn btn-primary" onclick="adicionarErro()" style="width:100%;">Registrar erro</button>
+    </div>
+    <div>
+      <h3 style="margin-top:0;">Histórico</h3>
+      <div id="erros-lista" style="font-size:0.82rem;color:var(--muted);">Nenhum erro registrado ainda.</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- TAB: FÓRMULAS -->
+<!-- ================================================================ -->
+<div class="tab-pane" id="pane-formulas">
+<div class="section">
+  <h2>📐 Resumo de Fórmulas</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Use este espaço para anotar fórmulas e conceitos-chave. Salvo automaticamente.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;">
+    <div>
+      <h3 style="color:var(--blue);">Matemática</h3>
+      <textarea id="form-math" rows="12" placeholder="Álgebra Linear, Cálculo, Lógica, Combinatória..."></textarea>
+    </div>
+    <div>
+      <h3 style="color:var(--purple);">Fundamentos</h3>
+      <textarea id="form-fund" rows="12" placeholder="Complexidade, Estruturas, SO, Grafos..."></textarea>
+    </div>
+    <div>
+      <h3 style="color:var(--cyan);">Tecnologia</h3>
+      <textarea id="form-tec" rows="12" placeholder="BD, Redes, Eng.Software, IA..."></textarea>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- TAB: ESTATÍSTICAS -->
+<!-- ================================================================ -->
+<div class="tab-pane" id="pane-estatisticas">
+<div class="section">
+  <h2>📈 Análise de Recorrência Histórica</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:0.5rem;">
+    Base: <strong id="stat-n-questoes">1509</strong> questões classificadas em <strong id="stat-n-anos">22</strong> provas (2002–2025).
+  </p>
+
+  <!-- Date filter -->
+  <div class="filter-bar">
+    <label>Período:</label>
+    <div class="filter-presets" id="filter-presets">
+      <button class="preset-btn active" data-preset="all">Todas (2002–2025)</button>
+      <button class="preset-btn" data-preset="2018+">2018+</button>
+      <button class="preset-btn" data-preset="last5">Últimos 5 anos</button>
+    </div>
+    <label>Ou:</label>
+    <select id="filter-start"></select>
+    <label>até</label>
+    <select id="filter-end"></select>
+    <button class="btn btn-sm" onclick="aplicarFiltro()">Aplicar</button>
+  </div>
+
+  <h3>Top 10 tópicos mais cobrados</h3>
+  <table>
+    <thead><tr><th>#</th><th>Tópico</th><th>Área</th><th>Total</th><th>Média/prova</th><th>% do total</th></tr></thead>
+    <tbody id="stats-top10"></tbody>
+  </table>
+
+  <h3>Distribuição por área</h3>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;" id="stats-por-area"></div>
+</div>
+</div>
+
+<!-- Modal para Novo Simulado -->
+<div class="modal-overlay" id="modal-simulado">
+  <div class="modal">
+    <h3>Novo Simulado</h3>
+    <div class="form-group"><label>Nome</label><input type="text" id="sim-nome" placeholder="Ex: Simulado 2024, Mini Fundamentos"></div>
+    <div class="form-group"><label>Data</label><input type="date" id="sim-data"></div>
+    <div class="form-group"><label>Total /70</label><input type="number" id="sim-total" min="0" max="70"></div>
+    <div class="form-group"><label>Matemática /20</label><input type="number" id="sim-mat" min="0" max="20"></div>
+    <div class="form-group"><label>Fundamentos /30</label><input type="number" id="sim-fund" min="0" max="30"></div>
+    <div class="form-group"><label>Tecnologia /20</label><input type="number" id="sim-tec" min="0" max="20"></div>
+    <div class="form-group"><label>Tempo gasto</label><input type="text" id="sim-tempo" placeholder="Ex: 3h45min"></div>
+    <div class="form-group"><label>Observações</label><input type="text" id="sim-obs" placeholder="Como foi?"></div>
+    <div class="actions">
+      <button class="btn" onclick="fecharModal('modal-simulado')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarSimulado()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Token do GitHub -->
+<div class="modal-overlay" id="modal-token">
+  <div class="modal">
+    <h3>🔐 Configurar Sincronização</h3>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;">
+      Para sincronizar entre dispositivos, cole seu token do GitHub com escopo <strong>gist</strong>.
+      <br><br>
+      <a href="https://github.com/settings/tokens" target="_blank">Criar token →</a>
+      (marque apenas <code>gist</code>)
+    </p>
+    <div class="form-group"><label>Token do GitHub</label><input type="password" id="github-token" placeholder="ghp_..."></div>
+    <div class="actions">
+      <button class="btn" onclick="fecharModal('modal-token')">Cancelar</button>
+      <button class="btn btn-primary" onclick="configurarToken()">Salvar e sincronizar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" style="display:none;"></div>
+
+<!-- Footer -->
+<div class="section" style="text-align:center;color:var(--muted);font-size:0.8rem;">
+  <p>📂 <strong>Recursos:</strong> Provas 2002–2025 com gabarito • Repositório amimaro/Provas-POSCOMP</p>
+  <p style="margin-top:0.5rem;">Feito com ❤️ para Nicole • POSCOMP 30/08/2026</p>
+</div>
+
+</div><!-- /container -->
+
+<!-- ================================================================ -->
+<!-- SCRIPTS -->
+<!-- ================================================================ -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+// =============================================================
+// DADOS ESTATÍSTICOS (embutidos de estatisticas_topicos.json)
+// =============================================================
+const ESTATISTICAS = {"total_questoes_classificadas": 1509, "total_anos": 22, "anos": ["2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2022", "2023", "2024", "2025"], "por_area": {"Matemática": 425, "Tecnologia": 483, "Fundamentos": 601}, "por_topico": {"Matemática": [{"topico": "Combinatória", "total": 12, "media_por_prova": 0.5, "percentual": 0.8, "por_ano": {"2002": 0, "2003": 0, "2004": 0, "2005": 0, "2006": 1, "2007": 0, "2008": 1, "2009": 0, "2010": 1, "2011": 0, "2012": 0, "2013": 1, "2014": 0, "2015": 1, "2016": 1, "2017": 4, "2018": 0, "2019": 2, "2022": 0, "2023": 0, "2024": 0, "2025": 0}}, {"topico": "Conjuntos / Numeração", "total": 32, "media_por_prova": 1.5, "percentual": 2.1, "por_ano": {"2002": 2, "2003": 4, "2004": 0, "2005": 2, "2006": 2, "2007": 3, "2008": 3, "2009": 1, "2010": 0, "2011": 2, "2012": 1, "2013": 1, "2014": 2, "2015": 4, "2016": 2, "2017": 0, "2018": 1, "2019": 0, "2022": 0, "2023": 1, "2024": 0, "2025": 1}}, {"topico": "Cálculo", "total": 21, "media_por_prova": 1.0, "percentual": 1.4, "por_ano": {"2002": 1, "2003": 0, "2004": 0, "2005": 0, "2006": 0, "2007": 1, "2008": 1, "2009": 2, "2010": 1, "2011": 1, "2012": 0, "2013": 1, "2014": 1, "2015": 1, "2016": 2, "2017": 2, "2018": 1, "2019": 2, "2022": 2, "2023": 2, "2024": 0, "2025": 0}}, {"topico": "Geometria Analítica", "total": 77, "media_por_prova": 3.5, "percentual": 5.1, "por_ano": {"2002": 0, "2003": 4, "2004": 0, "2005": 2, "2006": 3, "2007": 5, "2008": 5, "2009": 3, "2010": 2, "2011": 7, "2012": 5, "2013": 10, "2014": 7, "2015": 2, "2016": 2, "2017": 6, "2018": 1, "2019": 4, "2022": 2, "2023": 2, "2024": 3, "2025": 2}}, {"topico": "Lógica / Álgebra Booleana", "total": 18, "media_por_prova": 0.8, "percentual": 1.2, "por_ano": {"2002": 0, "2003": 0, "2004": 0, "2005": 0, "2006": 0, "2007": 1, "2008": 0, "2009": 1, "2010": 1, "2011": 1, "2012": 1, "2013": 0, "2014": 0, "2015": 1, "2016": 1, "2017": 4, "2018": 2, "2019": 0, "2022": 2, "2023": 1, "2024": 1, "2025": 1}}, {"topico": "Probabilidade e Estatística", "total": 21, "media_por_prova": 1.0, "percentual": 1.4, "por_ano": {"2002": 0, "2003": 0, "2004": 0, "2005": 1, "2006": 1, "2007": 1, "2008": 0, "2009": 2, "2010": 2, "2011": 1, "2012": 2, "2013": 1, "2014": 1, "2015": 0, "2016": 1, "2017": 2, "2018": 2, "2019": 2, "2022": 1, "2023": 0, "2024": 0, "2025": 1}}, {"topico": "Álgebra", "total": 18, "media_por_prova": 0.8, "percentual": 1.2, "por_ano": {"2002": 2, "2003": 0, "2004": 1, "2005": 4, "2006": 4, "2007": 2, "2008": 0, "2009": 0, "2010": 1, "2011": 0, "2012": 0, "2013": 0, "2014": 1, "2015": 2, "2016": 1, "2017": 0, "2018": 0, "2019": 0, "2022": 0, "2023": 0, "2024": 0, "2025": 0}}, {"topico": "Álgebra Linear", "total": 209, "media_por_prova": 9.5, "percentual": 13.9, "por_ano": {"2002": 8, "2003": 8, "2004": 0, "2005": 14, "2006": 13, "2007": 11, "2008": 15, "2009": 8, "2010": 12, "2011": 6, "2012": 11, "2013": 7, "2014": 10, "2015": 9, "2016": 7, "2017": 19, "2018": 11, "2019": 8, "2022": 12, "2023": 9, "2024": 5, "2025": 6}}], "Fundamentos": [{"topico": "Arquitetura de Computadores", "total": 61, "media_por_prova": 2.8, "percentual": 4.0, "por_ano": {"2002": 0, "2003": 0, "2004": 2, "2005": 2, "2006": 3, "2007": 4, "2008": 5, "2009": 1, "2010": 3, "2011": 5, "2012": 2, "2013": 4, "2014": 4, "2015": 1, "2016": 3, "2017": 4, "2018": 2, "2019": 4, "2022": 3, "2023": 4, "2024": 2, "2025": 3}}, {"topico": "Complexidade de Algoritmos", "total": 40, "media_por_prova": 1.8, "percentual": 2.7, "por_ano": {"2002": 0, "2003": 0, "2004": 0, "2005": 0, "2006": 3, "2007": 2, "2008": 0, "2009": 0, "2010": 3, "2011": 3, "2012": 2, "2013": 0, "2014": 2, "2015": 2, "2016": 4, "2017": 6, "2018": 1, "2019": 1, "2022": 2, "2023": 3, "2024": 3, "2025": 3}}, {"topico": "Estruturas de Dados", "total": 69, "media_por_prova": 3.1, "percentual": 4.6, "por_ano": {"2002": 0, "2003": 0, "2004": 0, "2005": 5, "2006": 2, "2007": 3, "2008": 2, "2009": 8, "2010": 3, "2011": 1, "2012": 4, "2013": 6, "2014": 5, "2015": 4, "2016": 3, "2017": 6, "2018": 3, "2019": 2, "2022": 3, "2023": 4, "2024": 1, "2025": 4}}, {"topico": "Linguagens Formais / Autômatos", "total": 60, "media_por_prova": 2.7, "percentual": 4.0, "por_ano": {"2002": 0, "2003": 0, "2004": 0, "2005": 3, "2006": 2, "2007": 2, "2008": 7, "2009": 4, "2010": 3, "2011": 3, "2012": 3, "2013": 3, "2014": 2, "2015": 2, "2016": 2, "2017": 6, "2018": 3, "2019": 2, "2022": 3, "2023": 3, "2024": 4, "2025": 3}}, {"topico": "Linguagens de Programação", "total": 211, "media_por_prova": 9.6, "percentual": 14.0, "por_ano": {"2002": 2, "2003": 0, "2004": 7, "2005": 6, "2006": 9, "2007": 7, "2008": 9, "2009": 8, "2010": 11, "2011": 11, "2012": 11, "2013": 8, "2014": 6, "2015": 11, "2016": 11, "2017": 20, "2018": 13, "2019": 14, "2022": 11, "2023": 14, "2024": 14, "2025": 8}}, {"topico": "Lógica Digital / Circuitos", "total": 20, "media_por_prova": 0.9, "percentual": 1.3, "por_ano": {"2002": 0, "2003": 0, "2004": 0, "2005": 0, "2006": 0, "2007": 0, "2008": 2, "2009": 2, "2010": 1, "2011": 2, "2012": 1, "2013": 0, "2014": 3, "2015": 1, "2016": 1, "2017": 2, "2018": 0, "2019": 2, "2022": 1, "2023": 0, "2024": 1, "2025": 1}}, {"topico": "Sistemas Operacionais", "total": 54, "media_por_prova": 2.5, "percentual": 3.6, "por_ano": {"2002": 1, "2003": 0, "2004": 1, "2005": 4, "2006": 0, "2007": 2, "2008": 0, "2009": 2, "2010": 3, "2011": 1, "2012": 3, "2013": 3, "2014": 2, "2015": 4, "2016": 4, "2017": 9, "2018": 3, "2019": 0, "2022": 1, "2023": 2, "2024": 5, "2025": 4}}, {"topico": "Teoria dos Grafos", "total": 71, "media_por_prova": 3.2, "percentual": 4.7, "por_ano": {"2002": 1, "2003": 0, "2004": 0, "2005": 3, "2006": 3, "2007": 4, "2008": 5, "2009": 2, "2010": 2, "2011": 6, "2012": 3, "2013": 5, "2014": 3, "2015": 5, "2016": 3, "2017": 5, "2018": 5, "2019": 5, "2022": 3, "2023": 2, "2024": 3, "2025": 3}}], "Tecnologia": [{"topico": "Banco de Dados", "total": 205, "media_por_prova": 9.3, "percentual": 13.6, "por_ano": {"2002": 16, "2003": 10, "2004": 7, "2005": 12, "2006": 12, "2007": 7, "2008": 7, "2009": 7, "2010": 8, "2011": 7, "2012": 10, "2013": 8, "2014": 9, "2015": 10, "2016": 6, "2017": 18, "2018": 10, "2019": 9, "2022": 7, "2023": 7, "2024": 9, "2025": 9}}, {"topico": "Compiladores", "total": 26, "media_por_prova": 1.2, "percentual": 1.7, "por_ano": {"2002": 2, "2003": 2, "2004": 1, "2005": 0, "2006": 1, "2007": 0, "2008": 0, "2009": 3, "2010": 1, "2011": 2, "2012": 2, "2013": 2, "2014": 0, "2015": 1, "2016": 1, "2017": 4, "2018": 1, "2019": 0, "2022": 1, "2023": 1, "2024": 1, "2025": 0}}, {"topico": "Computação Gráfica", "total": 24, "media_por_prova": 1.1, "percentual": 1.6, "por_ano": {"2002": 1, "2003": 1, "2004": 2, "2005": 0, "2006": 0, "2007": 1, "2008": 0, "2009": 2, "2010": 1, "2011": 1, "2012": 2, "2013": 3, "2014": 0, "2015": 1, "2016": 1, "2017": 0, "2018": 3, "2019": 1, "2022": 1, "2023": 2, "2024": 0, "2025": 1}}, {"topico": "Engenharia de Software", "total": 40, "media_por_prova": 1.8, "percentual": 2.7, "por_ano": {"2002": 1, "2003": 4, "2004": 0, "2005": 1, "2006": 4, "2007": 2, "2008": 0, "2009": 2, "2010": 2, "2011": 1, "2012": 1, "2013": 1, "2014": 2, "2015": 3, "2016": 3, "2017": 2, "2018": 1, "2019": 1, "2022": 4, "2023": 1, "2024": 3, "2025": 1}}, {"topico": "Inteligência Artificial", "total": 20, "media_por_prova": 0.9, "percentual": 1.3, "por_ano": {"2002": 0, "2003": 1, "2004": 1, "2005": 0, "2006": 1, "2007": 2, "2008": 0, "2009": 1, "2010": 0, "2011": 2, "2012": 1, "2013": 1, "2014": 2, "2015": 1, "2016": 0, "2017": 2, "2018": 0, "2019": 1, "2022": 2, "2023": 2, "2024": 0, "2025": 0}}, {"topico": "Processamento de Imagens", "total": 21, "media_por_prova": 1.0, "percentual": 1.4, "por_ano": {"2002": 2, "2003": 0, "2004": 2, "2005": 0, "2006": 1, "2007": 0, "2008": 1, "2009": 0, "2010": 1, "2011": 0, "2012": 0, "2013": 1, "2014": 2, "2015": 1, "2016": 1, "2017": 2, "2018": 1, "2019": 1, "2022": 1, "2023": 0, "2024": 2, "2025": 2}}, {"topico": "Redes de Computadores", "total": 116, "media_por_prova": 5.3, "percentual": 7.7, "por_ano": {"2002": 10, "2003": 11, "2004": 4, "2005": 10, "2006": 4, "2007": 6, "2008": 7, "2009": 5, "2010": 4, "2011": 4, "2012": 3, "2013": 3, "2014": 4, "2015": 2, "2016": 6, "2017": 8, "2018": 3, "2019": 4, "2022": 4, "2023": 6, "2024": 4, "2025": 4}}, {"topico": "Sistemas Distribuídos", "total": 29, "media_por_prova": 1.3, "percentual": 1.9, "por_ano": {"2002": 0, "2003": 1, "2004": 3, "2005": 0, "2006": 0, "2007": 0, "2008": 0, "2009": 0, "2010": 2, "2011": 3, "2012": 2, "2013": 1, "2014": 2, "2015": 1, "2016": 0, "2017": 4, "2018": 1, "2019": 3, "2022": 1, "2023": 1, "2024": 1, "2025": 3}}]}, "nao_classificados": 34, "confianca_distribuicao": {"nenhuma": 34, "baixa": 623, "alta": 852}};
+
+// Fallback se o placeholder não foi substituído
+if (ESTATISTICAS.EMBEDDED_STATS_PLACEHOLDER !== undefined) {
+  console.warn('Estatísticas não embutidas — usando dados mínimos.');
+}
+
+// =============================================================
+// MODELO DE DADOS
+// =============================================================
+const DEFAULT_DATA = {
+  _version: 1,
+  _lastModified: Date.now(),
+  simulados: [],
+  matrizGaps: {},
+  checklist: {},
+  erros: [],
+  formulas: { matematica: '', fundamentos: '', tecnologia: '' },
+  filtroData: { inicio: 2018, fim: 2025 },
+  gistId: null,
+};
+
+let data = loadData();
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem('poscomp_data');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Garante que tem todos os campos
+      return { ...DEFAULT_DATA, ...parsed };
+    }
+  } catch(e) { console.warn('Erro ao carregar dados:', e); }
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+function saveData() {
+  data._lastModified = Date.now();
+  try {
+    localStorage.setItem('poscomp_data', JSON.stringify(data));
+  } catch(e) {
+    toast('Erro ao salvar: localStorage cheio.', 'error');
+  }
+}
+
+// =============================================================
+// UTILITÁRIOS
+// =============================================================
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast toast-${type}`;
+  el.style.display = 'block';
+  el.style.opacity = '1';
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.style.display = 'none', 300); }, 2500);
+}
+
+function fecharModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+// =============================================================
+// TAB NAVIGATION
+// =============================================================
+let activeTab = localStorage.getItem('poscomp_tab') || 'dashboard';
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.getElementById(`pane-${tab}`).classList.add('active');
+    activeTab = tab;
+    localStorage.setItem('poscomp_tab', tab);
+    if (tab === 'estatisticas') renderizarEstatisticas();
+    if (tab === 'gaps') renderizarGaps();
+    if (tab === 'erros') prepararFormErros();
+    if (tab === 'checklist') renderizarChecklist();
+  });
+});
+
+// Ativar tab inicial
+const initialTab = document.querySelector(`[data-tab="${activeTab}"]`);
+if (initialTab) initialTab.click();
+
+// =============================================================
+// COUNTDOWN
+// =============================================================
+const examDate = new Date('2026-08-30T09:00:00-03:00');
+function updateCountdown() {
+  const diff = examDate - new Date();
+  const days = Math.floor(diff / (1000*60*60*24));
+  const hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+  const mins = Math.floor((diff % (1000*60*60)) / (1000*60));
+  document.getElementById('days').textContent = days > 0 ? days : 0;
+  document.getElementById('hours').textContent = hours + 'h ' + mins + 'm';
+}
+updateCountdown();
+setInterval(updateCountdown, 60000);
+
+// =============================================================
+// SIMULADOS
+// =============================================================
+let editandoSimuladoId = null;
+
+function abrirModalSimulado(id = null) {
+  editandoSimuladoId = id;
+  document.getElementById('modal-simulado').classList.add('show');
+
+  if (id) {
+    const s = data.simulados.find(s => s.id === id);
+    if (s) {
+      document.getElementById('sim-nome').value = s.nome;
+      document.getElementById('sim-data').value = s.data;
+      document.getElementById('sim-total').value = s.total;
+      document.getElementById('sim-mat').value = s.mat;
+      document.getElementById('sim-fund').value = s.fund;
+      document.getElementById('sim-tec').value = s.tec;
+      document.getElementById('sim-tempo').value = s.tempo;
+      document.getElementById('sim-obs').value = s.obs || '';
+    }
+  } else {
+    ['sim-nome','sim-data','sim-total','sim-mat','sim-fund','sim-tec','sim-tempo','sim-obs'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  }
+}
+
+function salvarSimulado() {
+  const sim = {
+    id: editandoSimuladoId || uid(),
+    nome: document.getElementById('sim-nome').value || 'Simulado',
+    data: document.getElementById('sim-data').value,
+    mat: parseInt(document.getElementById('sim-mat').value) || 0,
+    fund: parseInt(document.getElementById('sim-fund').value) || 0,
+    tec: parseInt(document.getElementById('sim-tec').value) || 0,
+    total: parseInt(document.getElementById('sim-total').value) || 0,
+    tempo: document.getElementById('sim-tempo').value,
+    obs: document.getElementById('sim-obs').value,
+  };
+
+  if (editandoSimuladoId) {
+    const idx = data.simulados.findIndex(s => s.id === editandoSimuladoId);
+    if (idx >= 0) data.simulados[idx] = sim;
+  } else {
+    data.simulados.push(sim);
+  }
+
+  editandoSimuladoId = null;
+  saveData();
+  fecharModal('modal-simulado');
+  renderizarSimulados();
+  atualizarStatsCards();
+  toast('Simulado salvo!');
+  scheduleSync();
+}
+
+function removerSimulado(id) {
+  if (!confirm('Remover este simulado? Esta ação não pode ser desfeita.')) return;
+  data.simulados = data.simulados.filter(s => s.id !== id);
+  saveData();
+  renderizarSimulados();
+  atualizarStatsCards();
+  toast('Simulado removido.');
+  scheduleSync();
+}
+
+function renderizarSimulados() {
+  const tbody = document.getElementById('simulados-tbody');
+  document.getElementById('sim-count').textContent = data.simulados.length;
+
+  if (data.simulados.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem;">Nenhum simulado ainda. Clique em "+ Novo Simulado" para começar.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.simulados.map(s => `
+    <tr>
+      <td><strong>${esc(s.nome)}</strong></td>
+      <td>${s.data || '—'}</td>
+      <td>${s.total || '—'}</td>
+      <td>${s.mat || '—'}</td>
+      <td>${s.fund || '—'}</td>
+      <td>${s.tec || '—'}</td>
+      <td>${s.tempo || '—'}</td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(s.obs||'')}">${s.obs || '—'}</td>
+      <td>
+        <button class="btn btn-sm" onclick="abrirModalSimulado('${s.id}')" title="Editar">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="removerSimulado('${s.id}')" title="Remover">🗑</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function atualizarStatsCards() {
+  if (data.simulados.length === 0) {
+    document.getElementById('stat-math').textContent = '—';
+    document.getElementById('stat-fund').textContent = '—';
+    document.getElementById('stat-tec').textContent = '—';
+    return;
+  }
+  const ultimo = data.simulados[data.simulados.length - 1];
+  document.getElementById('stat-math').textContent = ultimo.mat || '—';
+  document.getElementById('stat-fund').textContent = ultimo.fund || '—';
+  document.getElementById('stat-tec').textContent = ultimo.tec || '—';
+}
+
+// =============================================================
+// MATRIZ DE GAPS
+// =============================================================
+const TOPICOS_GAPS = [
+  { topico: 'Lógica / Álgebra Booleana', area: 'Matemática' },
+  { topico: 'Álgebra Linear', area: 'Matemática' },
+  { topico: 'Cálculo', area: 'Matemática' },
+  { topico: 'Geometria Analítica', area: 'Matemática' },
+  { topico: 'Combinatória', area: 'Matemática' },
+  { topico: 'Probabilidade e Estatística', area: 'Matemática' },
+  { topico: 'Conjuntos / Numeração', area: 'Matemática' },
+  { topico: 'Linguagens de Programação', area: 'Fundamentos' },
+  { topico: 'Estruturas de Dados', area: 'Fundamentos' },
+  { topico: 'Sistemas Operacionais', area: 'Fundamentos' },
+  { topico: 'Teoria dos Grafos', area: 'Fundamentos' },
+  { topico: 'Complexidade de Algoritmos', area: 'Fundamentos' },
+  { topico: 'Linguagens Formais / Autômatos', area: 'Fundamentos' },
+  { topico: 'Arquitetura de Computadores', area: 'Fundamentos' },
+  { topico: 'Lógica Digital / Circuitos', area: 'Fundamentos' },
+  { topico: 'Banco de Dados', area: 'Tecnologia' },
+  { topico: 'Redes de Computadores', area: 'Tecnologia' },
+  { topico: 'Engenharia de Software', area: 'Tecnologia' },
+  { topico: 'Sistemas Distribuídos', area: 'Tecnologia' },
+  { topico: 'Inteligência Artificial', area: 'Tecnologia' },
+  { topico: 'Compiladores', area: 'Tecnologia' },
+  { topico: 'Computação Gráfica', area: 'Tecnologia' },
+  { topico: 'Processamento de Imagens', area: 'Tecnologia' },
+];
+
+function prioridadeDoPct(pct) {
+  if (pct === null || pct === undefined || pct === '') return '';
+  if (pct > 70) return 'B';
+  if (pct >= 50) return 'N';
+  return 'M';
+}
+
+function renderizarGaps() {
+  const sims = data.simulados;
+  const thead = document.getElementById('gaps-thead');
+  const tbody = document.getElementById('gaps-tbody');
+
+  // Inicializa matrizGaps se necessário
+  TOPICOS_GAPS.forEach(({topico}) => {
+    if (!data.matrizGaps[topico]) {
+      data.matrizGaps[topico] = { acao: '', prioridade: '' };
+    }
+  });
+
+  // Cabeçalho
+  let headerHTML = '<tr><th>Tópico</th><th>Área</th>';
+  sims.forEach(s => {
+    headerHTML += `<th title="${esc(s.nome)}">${esc(s.nome.slice(0,12))}</th>`;
+  });
+  headerHTML += '<th>Prioridade</th><th>Ação</th></tr>';
+  thead.innerHTML = headerHTML;
+
+  // Corpo
+  tbody.innerHTML = TOPICOS_GAPS.map(({topico, area}) => {
+    const gap = data.matrizGaps[topico] || {};
+    let row = `<tr><td><strong>${esc(topico)}</strong></td><td style="color:var(--muted);font-size:0.75rem;">${area}</td>`;
+
+    sims.forEach(s => {
+      const key = s.id + '_pct';
+      const val = gap[key];
+      const pctClass = prioridadeDoPct(val);
+      const bgClass = pctClass ? `gap-prio-${pctClass}` : '';
+      row += `<td class="edit-cell ${bgClass}" onclick="editarGap(this, '${esc(topico)}', '${s.id}')">${val !== null && val !== undefined && val !== '' ? val + '%' : '—'}</td>`;
+    });
+
+    const prio = gap.prioridade || '';
+    const prioBadge = prio === 'M' ? '<span class="badge badge-r">M</span>' :
+                      prio === 'N' ? '<span class="badge badge-y">N</span>' :
+                      prio === 'B' ? '<span class="badge badge-g">B</span>' : '—';
+    row += `<td>${prioBadge}</td>`;
+    row += `<td class="edit-cell" onclick="editarGapAcao(this, '${esc(topico)}')">${esc(gap.acao || '—')}</td>`;
+    row += '</tr>';
+    return row;
+  }).join('');
+}
+
+function editarGap(cell, topico, simId) {
+  const gap = data.matrizGaps[topico] || {};
+  const key = simId + '_pct';
+  const current = gap[key] || '';
+
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.min = 0;
+  input.max = 100;
+  input.value = current;
+  input.style.width = '60px';
+  input.style.fontSize = '0.8rem';
+  input.style.padding = '0.2rem 0.3rem';
+  input.className = 'editable-input';
+
+  cell.innerHTML = '';
+  cell.appendChild(input);
+  input.focus();
+  input.select();
+
+  const salvar = () => {
+    const val = input.value.trim();
+    if (!data.matrizGaps[topico]) data.matrizGaps[topico] = { acao: '', prioridade: '' };
+    data.matrizGaps[topico][key] = val === '' ? '' : parseInt(val);
+
+    // Recalcula prioridade baseado na média dos simulados
+    const sims = data.simulados;
+    let total = 0, count = 0;
+    sims.forEach(s => {
+      const k = s.id + '_pct';
+      const v = data.matrizGaps[topico][k];
+      if (v !== null && v !== undefined && v !== '' && !isNaN(v)) {
+        total += v;
+        count++;
+      }
+    });
+    const media = count > 0 ? total / count : null;
+    data.matrizGaps[topico].prioridade = prioridadeDoPct(Math.round(media));
+
+    saveData();
+    renderizarGaps();
+    scheduleSync();
+  };
+
+  input.addEventListener('blur', salvar);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); salvar(); } });
+}
+
+function editarGapAcao(cell, topico) {
+  const gap = data.matrizGaps[topico] || {};
+  const current = gap.acao || '';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = current;
+  input.style.width = '100%';
+  input.style.fontSize = '0.8rem';
+  input.placeholder = 'Ex: Estudar teoria + 5 questões';
+
+  cell.innerHTML = '';
+  cell.appendChild(input);
+  input.focus();
+
+  const salvar = () => {
+    if (!data.matrizGaps[topico]) data.matrizGaps[topico] = { prioridade: '' };
+    data.matrizGaps[topico].acao = input.value.trim();
+    saveData();
+    renderizarGaps();
+    scheduleSync();
+  };
+
+  input.addEventListener('blur', salvar);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); salvar(); } });
+}
+
+// =============================================================
+// CHECKLIST
+// =============================================================
+const CHECKLIST_TEMPLATE = {
+  'S1': [
+    { task: 'Simulado com prova 2024 (4h cronometrado)', essencial: true },
+    { task: 'Corrigir com gabarito — anotar notas', essencial: true },
+    { task: 'Análise de erros (classificar cada)', essencial: false },
+    { task: 'Montar matriz fraqueza/força', essencial: false },
+    { task: 'Refazer 5 questões mais difíceis', essencial: false },
+  ],
+  'S2': [
+    { task: 'Sessão 1 — pior tópico Fundamentos', essencial: true },
+    { task: 'Sessão 2 — 2º pior tópico Fundamentos', essencial: true },
+    { task: 'Simulado com prova 2023 (4h)', essencial: true },
+    { task: 'Corrigir simulado 2023', essencial: false },
+    { task: 'Comparar evolução Fundamentos', essencial: false },
+    { task: 'Revisar 1 tópico fraco de Matemática', essencial: false },
+  ],
+  'S3': [
+    { task: 'Sessão 1 Matemática (Lógica/Combinatória)', essencial: true },
+    { task: 'Sessão 2 Matemática (Probabilidade)', essencial: true },
+    { task: 'Sessão 3 Tecnologia (BD / IA)', essencial: true },
+    { task: 'Sessão 4 Tecnologia (Eng.SW / Redes)', essencial: true },
+    { task: 'Simulado com prova 2019 (4h)', essencial: false },
+    { task: 'Corrigir simulado 2019', essencial: false },
+    { task: '20 questões avulsas 2018 Mat+Tec', essencial: false },
+  ],
+  'S4': [
+    { task: 'Refazer TODAS erradas dos 3 simulados', essencial: true },
+    { task: 'Sessão 1 — tópico crônico 1', essencial: true },
+    { task: 'Sessão 2 — tópico crônico 2', essencial: true },
+    { task: 'Simulado com prova 2018 (4h)', essencial: false },
+    { task: 'Corrigir simulado 2018', essencial: false },
+    { task: 'Treinar estratégia de chute', essencial: false },
+  ],
+  'S5': [
+    { task: 'Revisão final todas as erradas', essencial: true },
+    { task: 'Criar 1 pág fórmulas por área (à mão)', essencial: true },
+    { task: 'Preparar setup técnico (Chrome, webcam)', essencial: true },
+    { task: 'Mini-simulado 35q em 2h', essencial: false },
+    { task: 'Última sessão tópico problemático', essencial: false },
+  ],
+  'Véspera': [
+    { task: 'Revisar fórmulas (30min/dia máx)', essencial: true },
+    { task: 'Dormir bem todos os dias', essencial: true },
+    { task: '29/08 NÃO estudar', essencial: true },
+  ],
+  'Prova': [
+    { task: 'Acordar 2h antes', essencial: true },
+    { task: 'Entrar no sistema 60min antes', essencial: true },
+    { task: '3 folhas rascunho + caneta + documento', essencial: true },
+  ],
+};
+
+function renderizarChecklist() {
+  // Inicializa checklist se necessário
+  Object.keys(CHECKLIST_TEMPLATE).forEach(semana => {
+    if (!data.checklist[semana]) {
+      data.checklist[semana] = CHECKLIST_TEMPLATE[semana].map(t => ({ ...t, done: false, date: '' }));
+    } else {
+      // Garante que tarefas novas apareçam
+      CHECKLIST_TEMPLATE[semana].forEach(t => {
+        if (!data.checklist[semana].find(dt => dt.task === t.task)) {
+          data.checklist[semana].push({ ...t, done: false, date: '' });
+        }
+      });
+    }
+  });
+
+  const container = document.getElementById('checklist-container');
+  const semanaNomes = { S1: 'Semana 1 — Diagnóstico', S2: 'Semana 2 — Fundamentos', S3: 'Semana 3 — Mat + Tec', S4: 'Semana 4 — Lacunas', S5: 'Semana 5 — Revisão', 'Véspera': '🧘 Véspera', 'Prova': '🏁 Dia da Prova' };
+
+  let html = '';
+  Object.keys(CHECKLIST_TEMPLATE).forEach(semana => {
+    const tasks = data.checklist[semana] || [];
+    const doneCount = tasks.filter(t => t.done).length;
+    const pct = tasks.length > 0 ? Math.round(doneCount / tasks.length * 100) : 0;
+
+    html += `<div class="week" style="margin-bottom:1rem;">
+      <div class="week-header">
+        <h3>${semanaNomes[semana] || semana}</h3>
+        <span class="dates">${doneCount}/${tasks.length} (${pct}%)</span>
+      </div>
+      <div class="progress-row">
+        <div class="progress-bar"><div class="progress-fill fill-green" style="width:${pct}%"></div></div>
+      </div>
+      <ul class="tasks">`;
+
+    tasks.forEach((t, i) => {
+      const dotClass = t.essencial ? 'dot-red' : 'dot-yellow';
+      const checked = t.done ? 'checked' : '';
+      html += `<li>
+        <input type="checkbox" ${checked} onchange="toggleChecklist('${semana}', ${i}, this.checked)" style="margin-top:3px;">
+        <span style="flex:1;">
+          <span class="dot ${dotClass}" style="display:inline-block;margin-right:0.3rem;"></span>
+          ${t.essencial ? '<strong>' + esc(t.task) + '</strong>' : esc(t.task)}
+        </span>
+        ${t.date ? `<span style="font-size:0.7rem;color:var(--muted);">${t.date}</span>` : ''}
+      </li>`;
+    });
+
+    html += '</ul></div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function toggleChecklist(semana, index, done) {
+  if (!data.checklist[semana]) return;
+  data.checklist[semana][index].done = done;
+  data.checklist[semana][index].date = done ? new Date().toISOString().slice(0, 10) : '';
+  saveData();
+  renderizarChecklist();
+  scheduleSync();
+}
+
+// =============================================================
+// CLASSIFICAÇÃO DE ERROS
+// =============================================================
+function prepararFormErros() {
+  const sel = document.getElementById('err-simulado');
+  sel.innerHTML = data.simulados.map(s => `<option value="${s.id}">${esc(s.nome)}</option>`).join('');
+
+  const selT = document.getElementById('err-topico');
+  selT.innerHTML = TOPICOS_GAPS.map(t => `<option value="${esc(t.topico)}">${esc(t.topico)}</option>`).join('');
+}
+
+function adicionarErro() {
+  const erro = {
+    id: uid(),
+    simuladoId: document.getElementById('err-simulado').value,
+    questao: parseInt(document.getElementById('err-questao').value) || 0,
+    topico: document.getElementById('err-topico').value,
+    tipo: document.getElementById('err-tipo').value,
+    descricao: document.getElementById('err-desc').value,
+    data: new Date().toISOString(),
+  };
+
+  if (!erro.questao) { toast('Informe o número da questão.', 'error'); return; }
+
+  data.erros.push(erro);
+  saveData();
+  document.getElementById('err-questao').value = '';
+  document.getElementById('err-desc').value = '';
+  renderizarErros();
+  toast('Erro registrado!');
+  scheduleSync();
+}
+
+function removerErro(id) {
+  data.erros = data.erros.filter(e => e.id !== id);
+  saveData();
+  renderizarErros();
+  scheduleSync();
+}
+
+function renderizarErros() {
+  const container = document.getElementById('erros-lista');
+  if (data.erros.length === 0) {
+    container.innerHTML = '<p style="color:var(--muted);">Nenhum erro registrado ainda.</p>';
+    return;
+  }
+
+  const simNome = (id) => {
+    const s = data.simulados.find(s => s.id === id);
+    return s ? s.nome : id;
+  };
+
+  container.innerHTML = `
+    <table>
+      <thead><tr><th>Data</th><th>Sim.</th><th>Q#</th><th>Tópico</th><th>Tipo</th><th>Descrição</th><th></th></tr></thead>
+      <tbody>
+        ${data.erros.map(e => `
+          <tr>
+            <td style="font-size:0.75rem;">${e.data ? e.data.slice(0,10) : ''}</td>
+            <td style="font-size:0.75rem;">${esc(simNome(e.simuladoId))}</td>
+            <td>Q${e.questao}</td>
+            <td style="font-size:0.75rem;">${esc(e.topico)}</td>
+            <td><span class="badge badge-y">${esc(e.tipo)}</span></td>
+            <td style="font-size:0.8rem;">${esc(e.descricao || '')}</td>
+            <td><button class="btn btn-sm btn-danger" onclick="removerErro('${e.id}')">🗑</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+}
+
+// =============================================================
+// FÓRMULAS
+// =============================================================
+['form-math', 'form-fund', 'form-tec'].forEach((id, i) => {
+  const keys = ['matematica', 'fundamentos', 'tecnologia'];
+  const el = document.getElementById(id);
+  el.value = data.formulas[keys[i]] || '';
+
+  el.addEventListener('blur', () => {
+    data.formulas[keys[i]] = el.value;
+    saveData();
+    scheduleSync();
+  });
+});
+
+// =============================================================
+// ESTATÍSTICAS COM FILTRO
+// =============================================================
+function aplicarFiltro() {
+  const start = parseInt(document.getElementById('filter-start').value);
+  const end = parseInt(document.getElementById('filter-end').value);
+  data.filtroData = { inicio: start, fim: end };
+  saveData();
+  renderizarEstatisticas();
+
+  // Atualiza presets
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  const matchPreset = document.querySelector(`[data-preset="${start}-${end}"]`);
+  if (matchPreset) matchPreset.classList.add('active');
+}
+
+function renderizarEstatisticas() {
+  if (!ESTATISTICAS || !ESTATISTICAS.por_topico) {
+    document.getElementById('stats-top10').innerHTML = '<tr><td colspan="6">Dados estatísticos não disponíveis.</td></tr>';
+    return;
+  }
+
+  const { inicio, fim } = data.filtroData;
+
+  // Popula selects de ano
+  const anos = ESTATISTICAS.anos || [];
+  if (anos.length > 0) {
+    const startSel = document.getElementById('filter-start');
+    const endSel = document.getElementById('filter-end');
+    if (startSel.options.length === 0) {
+      startSel.innerHTML = anos.map(a => `<option value="${a}" ${a==inicio?'selected':''}>${a}</option>`).join('');
+      endSel.innerHTML = anos.map(a => `<option value="${a}" ${a==fim?'selected':''}>${a}</option>`).join('');
+    }
+  }
+
+  // Filtra tópicos pelo range de anos
+  const anosNoRange = anos.filter(a => a >= inicio && a <= fim);
+  const nAnos = anosNoRange.length;
+
+  const todosTopicos = [];
+  ['Matemática', 'Fundamentos', 'Tecnologia'].forEach(area => {
+    (ESTATISTICAS.por_topico[area] || []).forEach(t => {
+      const total = Object.entries(t.por_ano || {})
+        .filter(([ano]) => ano >= inicio && ano <= fim)
+        .reduce((sum, [, count]) => sum + count, 0);
+      if (total > 0) {
+        todosTopicos.push({ ...t, total, area, media_por_prova: parseFloat((total / Math.max(nAnos, 1)).toFixed(1)) });
+      }
+    });
+  });
+
+  todosTopicos.sort((a, b) => b.total - a.total);
+  const totalGeral = todosTopicos.reduce((s, t) => s + t.total, 0);
+
+  document.getElementById('stat-n-questoes').textContent = totalGeral;
+  document.getElementById('stat-n-anos').textContent = nAnos;
+
+  // Top 10
+  const top10 = todosTopicos.slice(0, 10);
+  document.getElementById('stats-top10').innerHTML = top10.map((t, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td><strong>${esc(t.topico)}</strong></td>
+      <td><span class="badge badge-b">${t.area}</span></td>
+      <td>${t.total}q</td>
+      <td>${t.media_por_prova}/prova</td>
+      <td>${(100 * t.total / Math.max(totalGeral, 1)).toFixed(1)}%</td>
+    </tr>
+  `).join('');
+
+  // Por área
+  const areasDiv = document.getElementById('stats-por-area');
+  areasDiv.innerHTML = ['Matemática', 'Fundamentos', 'Tecnologia'].map(area => {
+    const topicosArea = todosTopicos.filter(t => t.area === area);
+    const cores = { Matemática: 'var(--blue)', Fundamentos: 'var(--purple)', Tecnologia: 'var(--cyan)' };
+    return `<div>
+      <h4 style="color:${cores[area]};margin-bottom:0.5rem;">${area.toUpperCase()}</h4>
+      <table>
+        <thead><tr><th>Tópico</th><th>Total</th><th>Média</th></tr></thead>
+        <tbody>
+          ${topicosArea.map(t => `
+            <tr><td>${esc(t.topico)}</td><td>${t.total}q</td><td>${t.media_por_prova}/prova</td></tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  }).join('');
+}
+
+// Presets
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const preset = btn.dataset.preset;
+    let inicio, fim;
+
+    if (preset === 'all') { inicio = 2002; fim = 2025; }
+    else if (preset === '2018+') { inicio = 2018; fim = 2025; }
+    else if (preset === 'last5') {
+      const anos = (ESTATISTICAS.anos || []).filter(a => a >= 2000);
+      fim = anos.length > 0 ? Math.max(...anos) : 2025;
+      inicio = fim - 4;
+    }
+
+    document.getElementById('filter-start').value = inicio;
+    document.getElementById('filter-end').value = fim;
+    data.filtroData = { inicio, fim };
+    saveData();
+    renderizarEstatisticas();
+  });
+});
+
+// =============================================================
+// GIST SYNC
+// =============================================================
+let syncTimeout = null;
+
+function scheduleSync() {
+  if (syncTimeout) clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(syncToGist, 2000);
+}
+
+async function syncNow() {
+  const token = localStorage.getItem('poscomp_token');
+  if (!token) {
+    document.getElementById('modal-token').classList.add('show');
+    return;
+  }
+  if (syncTimeout) clearTimeout(syncTimeout);
+  await syncToGist();
+}
+
+async function syncToGist() {
+  const token = localStorage.getItem('poscomp_token');
+  if (!token) return;
+
+  try {
+    const headers = {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+    };
+
+    const content = JSON.stringify(data, null, 2);
+    let gistId = data.gistId;
+
+    if (!gistId) {
+      // Cria novo Gist
+      const resp = await fetch('https://api.github.com/gists', {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: 'POSCOMP Dashboard Data',
+          public: false,
+          files: { 'poscomp_data.json': { content } },
+        }),
+      });
+      if (!resp.ok) throw new Error(`Create gist: ${resp.status}`);
+      const gist = await resp.json();
+      data.gistId = gist.id;
+      saveData();
+    } else {
+      // Atualiza Gist existente
+      const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
+        method: 'PATCH',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          files: { 'poscomp_data.json': { content } },
+        }),
+      });
+      if (resp.status === 404) {
+        // Gist foi deletado, recria
+        data.gistId = null;
+        saveData();
+        await syncToGist();
+        return;
+      }
+      if (!resp.ok) throw new Error(`Update gist: ${resp.status}`);
+    }
+
+    document.getElementById('sync-badge').className = 'sync-indicator sync-ok';
+    document.getElementById('sync-badge').textContent = '🟢 Sync OK';
+  } catch (e) {
+    console.warn('Sync error:', e);
+    document.getElementById('sync-badge').className = 'sync-indicator sync-offline';
+    document.getElementById('sync-badge').textContent = '🔴 Offline';
+  }
+}
+
+async function loadFromGist() {
+  const token = localStorage.getItem('poscomp_token');
+  if (!token || !data.gistId) return;
+
+  try {
+    const resp = await fetch(`https://api.github.com/gists/${data.gistId}`, {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+      },
+    });
+    if (!resp.ok) return;
+
+    const gist = await resp.json();
+    const file = gist.files?.['poscomp_data.json'];
+    if (!file?.content) return;
+
+    const remoteData = JSON.parse(file.content);
+    if (remoteData._lastModified > (data._lastModified || 0)) {
+      data = { ...DEFAULT_DATA, ...remoteData };
+      saveData();
+      renderizarTudo();
+      document.getElementById('sync-badge').className = 'sync-indicator sync-ok';
+      document.getElementById('sync-badge').textContent = '🟢 Atualizado';
+      setTimeout(() => {
+        document.getElementById('sync-badge').textContent = '🟢 Sync OK';
+      }, 2000);
+    }
+  } catch (e) {
+    console.warn('Load from gist error:', e);
+  }
+}
+
+function configurarToken() {
+  const token = document.getElementById('github-token').value.trim();
+  if (!token) { toast('Cole o token do GitHub.', 'error'); return; }
+  localStorage.setItem('poscomp_token', token);
+  fecharModal('modal-token');
+  toast('Token salvo! Sincronizando...');
+  syncNow();
+}
+
+// =============================================================
+// EXPORT / IMPORT
+// =============================================================
+function exportarDados() {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'poscomp_backup_' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Dados exportados!');
+}
+
+function importarDados() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        if (!confirm('Importar dados? Isso substituirá todos os dados atuais.')) return;
+        data = { ...DEFAULT_DATA, ...imported };
+        saveData();
+        renderizarTudo();
+        toast('Dados importados com sucesso!');
+      } catch (err) {
+        toast('Arquivo inválido.', 'error');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// =============================================================
+// RENDERIZAÇÃO GLOBAL
+// =============================================================
+function renderizarTudo() {
+  renderizarSimulados();
+  atualizarStatsCards();
+  renderizarGaps();
+  renderizarChecklist();
+  renderizarErros();
+  prepararFormErros();
+  renderizarEstatisticas();
+  updateCountdown();
+}
+
+// =============================================================
+// INICIALIZAÇÃO
+// =============================================================
+document.addEventListener('DOMContentLoaded', async () => {
+  // Verifica se tem token configurado
+  const token = localStorage.getItem('poscomp_token');
+  if (token) {
+    await loadFromGist();
+  }
+
+  // Botão de sync já está no onclick
+
+  // Se não tem token, mostra opção no canto
+  if (!token && !localStorage.getItem('poscomp_token_seen')) {
+    localStorage.setItem('poscomp_token_seen', '1');
+    // Não incomoda na primeira vez, deixa o usuário explorar
+  }
+
+  // Configura inputs dos modais para fechar com Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+    }
+  });
+
+  // Click fora do modal fecha
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.classList.remove('show');
+    });
+  });
+
+  renderizarTudo();
+});
+
+// Limpa timeouts ao sair
+window.addEventListener('beforeunload', () => {
+  if (syncTimeout) {
+    clearTimeout(syncTimeout);
+    syncTimeout = null;
+  }
+});
+</script>
+</body>
+</html>
