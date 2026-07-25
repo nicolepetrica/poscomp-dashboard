@@ -496,6 +496,7 @@
   .popover-btns .pop-err:hover { background: rgba(239,68,68,0.2); border-color: var(--red); }
   .popover-btns .pop-skip:hover { background: rgba(255,255,255,0.08); }
   .popover-btns .pop-anul:hover { background: rgba(245,158,11,0.2); border-color: var(--yellow); }
+  .popover-btns button.active-state { outline: 2px solid var(--cyan); outline-offset: 1px; }
 
   /* Mini bars */
   .mini-bar { display: inline-flex; width: 60px; height: 6px; border-radius: 3px; overflow: hidden; vertical-align: middle; margin-left: 0.25rem; background: rgba(255,255,255,0.08); }
@@ -905,6 +906,7 @@
     <h3>Novo Simulado</h3>
     <div class="form-group"><label>Nome</label><input type="text" id="sim-nome" placeholder="Ex: Simulado 2024, Mini Fundamentos"></div>
     <div class="form-group"><label>Data</label><input type="date" id="sim-data"></div>
+    <div class="form-group"><label>Ano da prova (opcional)</label><select id="sim-ano"><option value="">Sem tracking por questao</option></select><p style="font-size:0.7rem;color:var(--muted);">Selecione o ano para criar automaticamente uma grade com as 70 questoes da prova.</p></div>
     <div class="form-group"><label>Total /70</label><input type="number" id="sim-total" min="0" max="70"></div>
     <div class="form-group"><label>Matemática /20</label><input type="number" id="sim-mat" min="0" max="20"></div>
     <div class="form-group"><label>Fundamentos /30</label><input type="number" id="sim-fund" min="0" max="30"></div>
@@ -1131,6 +1133,18 @@ function abrirModalSimulado(id = null) {
   editandoSimuladoId = id;
   document.getElementById('modal-simulado').classList.add('show');
 
+  // Popula select de anos (so na primeira vez)
+  const anoSel = document.getElementById('sim-ano');
+  if (anoSel && anoSel.options.length <= 1) {
+    const anos = Object.keys(QT).sort().reverse();
+    anos.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a;
+      opt.textContent = a;
+      anoSel.appendChild(opt);
+    });
+  }
+
   if (id) {
     const s = data.simulados.find(s => s.id === id);
     if (s) {
@@ -1142,26 +1156,74 @@ function abrirModalSimulado(id = null) {
       document.getElementById('sim-tec').value = s.tec;
       document.getElementById('sim-tempo').value = s.tempo;
       document.getElementById('sim-obs').value = s.obs || '';
+      // Se tem sessao vinculada, pega o ano da sessao
+      if (s.sessaoId && anoSel) {
+        const sess = data.sessoes.find(ss => ss.id === s.sessaoId);
+        anoSel.value = sess ? (sess.ano || '') : '';
+      } else if (anoSel) {
+        anoSel.value = '';
+      }
     }
   } else {
     ['sim-nome','sim-data','sim-total','sim-mat','sim-fund','sim-tec','sim-tempo','sim-obs'].forEach(id => {
       document.getElementById(id).value = '';
     });
+    if (anoSel) anoSel.value = '';
   }
 }
 
 function salvarSimulado() {
+  const ano = document.getElementById('sim-ano').value;
+  let sessaoId = null;
+
+  // Se selecionou ano e eh novo simulado, cria sessao vinculada
+  if (ano && !editandoSimuladoId) {
+    const sessionId = uid();
+    const questoes = [];
+    for (let q = 1; q <= 70; q++) {
+      const info = QT[ano] && QT[ano][q] ? QT[ano][q] : { t: 'Nao classificado', a: q <= 20 ? 'Matematica' : q <= 50 ? 'Fundamentos' : 'Tecnologia' };
+      questoes.push({ questao: q, topico: info.t, area: info.a, acertou: null, motivo: '', obs: '', anoRef: null });
+    }
+    data.sessoes.push({
+      id: sessionId, tipo: 'prova',
+      nome: document.getElementById('sim-nome').value || ('Prova ' + ano),
+      ano: ano, data: document.getElementById('sim-data').value || new Date().toISOString().slice(0,10),
+      questoes: questoes
+    });
+    sessaoId = sessionId;
+  }
+
+  // Se esta editando e ja tinha sessao, mantem o vinculo
+  if (editandoSimuladoId && ano) {
+    const existing = data.simulados.find(s => s.id === editandoSimuladoId);
+    sessaoId = existing ? existing.sessaoId || null : null;
+  }
+
+  // Se tem sessao vinculada, calcula scores dela
+  let mat = parseInt(document.getElementById('sim-mat').value) || 0;
+  let fund = parseInt(document.getElementById('sim-fund').value) || 0;
+  let tec = parseInt(document.getElementById('sim-tec').value) || 0;
+  let total = parseInt(document.getElementById('sim-total').value) || 0;
+
+  if (sessaoId) {
+    const sess = data.sessoes.find(s => s.id === sessaoId);
+    if (sess) {
+      mat = sess.questoes.filter(q => q.questao <= 20 && q.acertou === true).length;
+      fund = sess.questoes.filter(q => q.questao >= 21 && q.questao <= 50 && q.acertou === true).length;
+      tec = sess.questoes.filter(q => q.questao >= 51 && q.acertou === true).length;
+      total = mat + fund + tec;
+    }
+  }
+
   const sim = {
     id: editandoSimuladoId || uid(),
     nome: document.getElementById('sim-nome').value || 'Simulado',
     data: document.getElementById('sim-data').value,
-    mat: parseInt(document.getElementById('sim-mat').value) || 0,
-    fund: parseInt(document.getElementById('sim-fund').value) || 0,
-    tec: parseInt(document.getElementById('sim-tec').value) || 0,
-    total: parseInt(document.getElementById('sim-total').value) || 0,
+    mat: mat, fund: fund, tec: tec, total: total,
     tempo: document.getElementById('sim-tempo').value,
     obs: document.getElementById('sim-obs').value,
   };
+  if (sessaoId) sim.sessaoId = sessaoId;
 
   if (editandoSimuladoId) {
     const idx = data.simulados.findIndex(s => s.id === editandoSimuladoId);
@@ -1175,12 +1237,16 @@ function salvarSimulado() {
   fecharModal('modal-simulado');
   renderizarSimulados();
   atualizarStatsCards();
-  toast('Simulado salvo!');
+  toast(sessaoId ? 'Simulado vinculado a sessao!' : 'Simulado salvo!');
   scheduleSync();
 }
 
 function removerSimulado(id) {
-  if (!confirm('Remover este simulado? Esta ação não pode ser desfeita.')) return;
+  if (!confirm('Remover este simulado? Esta acao nao pode ser desfeita.')) return;
+  const sim = data.simulados.find(s => s.id === id);
+  if (sim && sim.sessaoId) {
+    data.sessoes = data.sessoes.filter(s => s.id !== sim.sessaoId);
+  }
   data.simulados = data.simulados.filter(s => s.id !== id);
   saveData();
   renderizarSimulados();
@@ -1202,8 +1268,9 @@ function renderizarSimulados() {
   }
 
   // Desktop table
-  tbody.innerHTML = data.simulados.map(s => `
-    <tr>
+  tbody.innerHTML = data.simulados.map(s => {
+    const qBtn = s.sessaoId ? `<button class="btn btn-sm" onclick="editarSessao('${s.sessaoId}')" title="Questoes" style="background:rgba(6,182,212,0.15);color:var(--cyan);">📋</button>` : '';
+    return `<tr>
       <td><strong>${esc(s.nome)}</strong></td>
       <td>${s.data || '—'}</td>
       <td>${s.total || '—'}</td>
@@ -1213,29 +1280,32 @@ function renderizarSimulados() {
       <td>${s.tempo || '—'}</td>
       <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(s.obs||'')}">${s.obs || '—'}</td>
       <td>
+        ${qBtn}
         <button class="btn btn-sm" onclick="abrirModalSimulado('${s.id}')" title="Editar">✏️</button>
         <button class="btn btn-sm btn-danger" onclick="removerSimulado('${s.id}')" title="Remover">🗑</button>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 
   // Mobile cards
-  cardsDiv.innerHTML = data.simulados.map(s => `
-    <div class="sim-card">
+  cardsDiv.innerHTML = data.simulados.map(s => {
+    const qBtn = s.sessaoId ? `<button class="btn btn-sm" onclick="editarSessao('${s.sessaoId}')" style="background:rgba(6,182,212,0.15);color:var(--cyan);">📋 Questoes</button>` : '';
+    return `<div class="sim-card">
       <h4>${esc(s.nome)}</h4>
       <div class="row"><span>Data</span><span class="val">${s.data || '—'}</span></div>
       <div class="row"><span>Total</span><span class="val">${s.total || '—'} /70</span></div>
-      <div class="row"><span>Matemática</span><span class="val">${s.mat || '—'} /20</span></div>
+      <div class="row"><span>Matematica</span><span class="val">${s.mat || '—'} /20</span></div>
       <div class="row"><span>Fundamentos</span><span class="val">${s.fund || '—'} /30</span></div>
       <div class="row"><span>Tecnologia</span><span class="val">${s.tec || '—'} /20</span></div>
       <div class="row"><span>Tempo</span><span class="val">${s.tempo || '—'}</span></div>
-      ${s.obs ? `<div class="row"><span>Obs</span><span class="val">${esc(s.obs)}</span></div>` : ''}
+      ${s.obs ? '<div class="row"><span>Obs</span><span class="val">' + esc(s.obs) + '</span></div>' : ''}
       <div class="actions">
+        ${qBtn}
         <button class="btn btn-sm" onclick="abrirModalSimulado('${s.id}')">✏️ Editar</button>
         <button class="btn btn-sm btn-danger" onclick="removerSimulado('${s.id}')">🗑 Remover</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -1937,21 +2007,20 @@ function mostrarPopoverQuestao(q) {
     if (!found) topicoSel.value = 'N\u00e3o classificado';
   }
 
-  // Se a questao ja foi marcada antes, mostra os detalhes
-  if (q.acertou !== null) {
-    if (btnsDiv) btnsDiv.style.display = 'none';
-    if (detalhesDiv) detalhesDiv.style.display = 'block';
-    if (errDiv) errDiv.style.display = q.acertou === false ? 'block' : 'none';
-    if (acertoDiv) acertoDiv.style.display = q.acertou === true ? 'block' : 'none';
-    if (q.acertou === false && motivoSel) motivoSel.value = q.motivo || '';
-    if (q.acertou === true && motivoAcertoSel) motivoAcertoSel.value = q.obs || '';
-  } else {
-    // Nao marcada ainda: mostra os 3 botoes, esconde detalhes
-    if (btnsDiv) btnsDiv.style.display = 'flex';
-    if (detalhesDiv) detalhesDiv.style.display = 'none';
-    if (errDiv) errDiv.style.display = 'none';
-    if (acertoDiv) acertoDiv.style.display = 'none';
-  }
+  // Sempre mostra os botoes e detalhes
+  if (btnsDiv) btnsDiv.style.display = 'flex';
+  if (detalhesDiv) detalhesDiv.style.display = 'block';
+
+  // Destaca o botao do estado atual
+  document.querySelectorAll('#popover-questao .popover-btns button').forEach(b => b.classList.remove('active-state'));
+  if (q.acertou === true) document.querySelector('#popover-questao .pop-ok').classList.add('active-state');
+  else if (q.acertou === false) document.querySelector('#popover-questao .pop-err').classList.add('active-state');
+  else if (q.acertou === 'anulada') document.querySelector('#popover-questao .pop-anul').classList.add('active-state');
+
+  if (errDiv) errDiv.style.display = q.acertou === false ? 'block' : 'none';
+  if (acertoDiv) acertoDiv.style.display = q.acertou === true ? 'block' : 'none';
+  if (q.acertou === false && motivoSel) motivoSel.value = q.motivo || '';
+  if (q.acertou === true && motivoAcertoSel) motivoAcertoSel.value = q.obs || '';
 
   // Posiciona e mostra
   overlay.style.display = 'block';
@@ -1989,6 +2058,15 @@ function salvarSessao() {
   if (idx >= 0) data.sessoes[idx] = { ...sessaoAtiva };
   else data.sessoes.push({ ...sessaoAtiva });
 
+  // Atualiza simulado vinculado se existir
+  const linkedSim = data.simulados.find(s => s.sessaoId === sessaoAtiva.id);
+  if (linkedSim) {
+    linkedSim.mat = sessaoAtiva.questoes.filter(q => q.questao <= 20 && q.acertou === true).length;
+    linkedSim.fund = sessaoAtiva.questoes.filter(q => q.questao >= 21 && q.questao <= 50 && q.acertou === true).length;
+    linkedSim.tec = sessaoAtiva.questoes.filter(q => q.questao >= 51 && q.acertou === true).length;
+    linkedSim.total = linkedSim.mat + linkedSim.fund + linkedSim.tec;
+  }
+
   sessaoAtiva = null;
   questaoSelecionada = null;
   document.getElementById('sessao-form').style.display = 'none';
@@ -1996,7 +2074,8 @@ function salvarSessao() {
   document.getElementById('sessao-lista-add').style.display = 'none';
   saveData();
   renderizarSessoes();
-  toast('Sessão salva! 💾');
+  atualizarStatsCards();
+  toast('Sessao salva!');
   scheduleSync();
 }
 
@@ -2050,7 +2129,7 @@ function renderizarSessoes() {
     const areaBars = Object.entries(porArea).map(([a, d]) => {
       const ap = d.total > 0 ? Math.round(d.acertos/d.total*100) : 0;
       const color = a === 'Matemática' ? 'var(--blue)' : a === 'Fundamentos' ? 'var(--purple)' : 'var(--cyan)';
-      return `<span style="font-size:0.7rem;">${a.slice(0,3)}: ${d.acertos}/${d.total} <span class="mini-bar"><span class="mini-bar-seg mb-green" style="width:${ap}%;background:${color};"></span><span class="mini-bar-seg mb-red" style="width:${100-ap}%;"></span></span></span>`;
+      return `<span style="font-size:0.7rem;">${a.slice(0,3)}: ${d.acertos}/${d.total} (${ap}%) <span class="mini-bar"><span class="mini-bar-seg mb-green" style="width:${ap}%;background:${color};"></span><span class="mini-bar-seg mb-red" style="width:${100-ap}%;"></span></span></span>`;
     }).join(' ');
 
     return `<div class="sessao-card" onclick="toggleSessaoCard(this, '${s.id}')">
