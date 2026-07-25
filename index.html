@@ -785,7 +785,7 @@
   <div id="popover-overlay" style="display:none;position:fixed;inset:0;z-index:199;" onclick="fecharPopover()"></div>
   <!-- Popover de marcação de questão -->
   <div class="popover" id="popover-questao" style="display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
       <strong id="popover-titulo" style="font-size:0.85rem;">Questão</strong>
       <button class="btn btn-sm" onclick="fecharPopover()" style="padding:0 0.4rem;">✕</button>
     </div>
@@ -794,26 +794,34 @@
       <button class="pop-err" onclick="marcarQuestao(false)">❌ Errei</button>
       <button class="pop-skip" onclick="marcarQuestao(null)">⚪ Pular</button>
     </div>
-    <div id="popover-tipo-erro" style="display:none;">
-      <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:0.25rem;">Tipo de erro:</label>
-      <select id="popover-motivo" onchange="questaoSelecionada.motivo=this.value" style="width:100%;margin-bottom:0.4rem;">
-        <option value="">Selecione...</option>
-        <option value="Não sabia o conceito">Não sabia o conceito</option>
-        <option value="Errei por falta de atenção">Errei por falta de atenção</option>
-        <option value="Sabia mas demorei (>4 min)">Sabia mas demorei (&gt;4 min)</option>
-        <option value="Chutei e errei">Chutei e errei</option>
-      </select>
+    <div id="popover-detalhes" style="display:none;">
+      <div id="popover-tipo-erro" style="display:none;margin-top:0.5rem;">
+        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:0.2rem;">Motivo do erro:</label>
+        <select id="popover-motivo" onchange="questaoSelecionada.motivo=this.value" style="width:100%;margin-bottom:0.4rem;font-size:0.82rem;">
+          <option value="">Selecione...</option>
+          <option value="Não sabia o conceito">Não sabia o conceito</option>
+          <option value="Errei por falta de atenção">Errei por falta de atenção</option>
+          <option value="Sabia mas demorei (>4 min)">Sabia mas demorei (&gt;4 min)</option>
+          <option value="Chutei e errei">Chutei e errei</option>
+        </select>
+      </div>
+      <div id="popover-tipo-acerto" style="display:none;margin-top:0.5rem;">
+        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:0.2rem;">Tipo de acerto:</label>
+        <select id="popover-motivo-acerto" onchange="questaoSelecionada.obs=this.value" style="width:100%;margin-bottom:0.4rem;font-size:0.82rem;">
+          <option value="">Selecione...</option>
+          <option value="Acertei com segurança">Acertei com segurança</option>
+          <option value="Acertei no chute">Acertei no chute</option>
+          <option value="Quero revisar depois">Quero revisar depois</option>
+          <option value="Pegadinha / tricky">Pegadinha / tricky</option>
+          <option value="Demorei mas acertei">Demorei mas acertei (&gt;4 min)</option>
+        </select>
+      </div>
+      <div style="margin-top:0.5rem;">
+        <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:0.2rem;">Corrigir tópico:</label>
+        <select id="popover-topico" onchange="questaoSelecionada.topico=this.value;questaoSelecionada.area=this.selectedOptions[0].dataset.area||questaoSelecionada.area" style="width:100%;margin-bottom:0.35rem;font-size:0.82rem;"></select>
+      </div>
+      <button id="popover-confirmar" class="btn btn-primary btn-sm" onclick="fecharPopover()" style="width:100%;margin-top:0.4rem;">OK</button>
     </div>
-    <div id="popover-observacao" style="display:none;">
-      <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:0.25rem;">Observação (opcional):</label>
-      <input type="text" id="popover-obs" placeholder="Ex: Revisar depois, pegadinha, difícil..."
-        onchange="questaoSelecionada.obs=this.value" style="width:100%;margin-bottom:0.5rem;">
-    </div>
-    <div id="popover-corrigir" style="display:none;">
-      <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:0.25rem;">Corrigir tópico:</label>
-      <select id="popover-topico" onchange="questaoSelecionada.topico=this.value;questaoSelecionada.area=this.selectedOptions[0].dataset.area||questaoSelecionada.area" style="width:100%;margin-bottom:0.25rem;"></select>
-    </div>
-    <button id="popover-confirmar" class="btn btn-primary btn-sm" onclick="fecharPopover()" style="display:none;width:100%;margin-top:0.5rem;">OK</button>
   </div>
 
   <!-- Histórico -->
@@ -1853,24 +1861,23 @@ function selecionarQuestaoIdx(idx) {
 function marcarQuestao(acertou) {
   if (!questaoSelecionada) return;
   questaoSelecionada.acertou = acertou;
-  // Limpa motivo se não for erro
   if (acertou !== false) { questaoSelecionada.motivo = ''; }
 
-  // Mostra/oculta as seções conforme o estado
+  // Esconde os 3 botoes, mostra os detalhes
+  const btnsDiv = document.querySelector('#popover-questao .popover-btns');
+  const detalhesDiv = document.getElementById('popover-detalhes');
   const errDiv = document.getElementById('popover-tipo-erro');
-  const obsDiv = document.getElementById('popover-observacao');
-  const corrigirDiv = document.getElementById('popover-corrigir');
-  const confirmarBtn = document.getElementById('popover-confirmar');
+  const acertoDiv = document.getElementById('popover-tipo-acerto');
 
+  if (btnsDiv) btnsDiv.style.display = 'none';
+  if (detalhesDiv) detalhesDiv.style.display = 'block';
   if (errDiv) errDiv.style.display = acertou === false ? 'block' : 'none';
-  // Observação sempre visível depois de marcar
-  if (obsDiv) obsDiv.style.display = (acertou === true || acertou === false) ? 'block' : 'none';
-  if (corrigirDiv) corrigirDiv.style.display = 'block';
-  if (confirmarBtn) confirmarBtn.style.display = 'block';
+  if (acertoDiv) acertoDiv.style.display = acertou === true ? 'block' : 'none';
 
-  // Preenche observação se já tiver
-  const obsInp = document.getElementById('popover-obs');
-  if (obsInp) obsInp.value = questaoSelecionada.obs || '';
+  if (acertou === true) {
+    const sel = document.getElementById('popover-motivo-acerto');
+    if (sel) sel.value = questaoSelecionada.obs || '';
+  }
 
   atualizarStatsSessao();
   renderizarGrade();
@@ -1888,57 +1895,57 @@ function mostrarPopoverQuestao(q) {
   const popover = document.getElementById('popover-questao');
   const overlay = document.getElementById('popover-overlay');
   const titulo = document.getElementById('popover-titulo');
+  const btnsDiv = document.querySelector('#popover-questao .popover-btns');
+  const detalhesDiv = document.getElementById('popover-detalhes');
   const errDiv = document.getElementById('popover-tipo-erro');
-  const obsDiv = document.getElementById('popover-observacao');
-  const corrigirDiv = document.getElementById('popover-corrigir');
-  const confirmarBtn = document.getElementById('popover-confirmar');
+  const acertoDiv = document.getElementById('popover-tipo-acerto');
   const motivoSel = document.getElementById('popover-motivo');
-  const obsInp = document.getElementById('popover-obs');
+  const motivoAcertoSel = document.getElementById('popover-motivo-acerto');
 
-  // Título
+  // Titulo
   const anoLabel = q.anoRef ? ' (' + q.anoRef + ' Q' + q.questao + ')' : ' (Q' + q.questao + ')';
   titulo.textContent = q.topico + anoLabel;
 
-  // Reseta seções conforme estado atual
-  if (errDiv) errDiv.style.display = 'none';
-  if (obsDiv) obsDiv.style.display = 'none';
-  if (corrigirDiv) corrigirDiv.style.display = 'block';
-  if (confirmarBtn) confirmarBtn.style.display = 'block';
-  if (motivoSel) motivoSel.value = q.motivo || '';
-  if (obsInp) obsInp.value = q.obs || '';
-
-  // Preenche select de tópicos
+  // Preenche select de topicos (so na primeira vez)
   const topicoSel = document.getElementById('popover-topico');
   if (topicoSel && topicoSel.options.length === 0) {
-    const areas = { Matemática: [], Fundamentos: [], Tecnologia: [] };
-    TOPICOS_GAPS.forEach(t => { areas[t.area].push(t.topico); });
-    areas['Não classificado'] = ['Não classificado'];
-    let opts = '';
-    Object.entries(areas).forEach(([area, topicos]) => {
-      opts += `<optgroup label="${area}">`;
-      topicos.forEach(t => {
-        opts += `<option value="${esc(t)}" data-area="${esc(area)}">${esc(t)}</option>`;
+    const areas = { 'Matemática': [], 'Fundamentos': [], 'Tecnologia': [] };
+    TOPICOS_GAPS.forEach(function(t) { areas[t.area].push(t.topico); });
+    var opts = '<option value="N\u00e3o classificado" data-area="">N\u00e3o classificado</option>';
+    Object.entries(areas).forEach(function(entry) {
+      var area = entry[0], topicos = entry[1];
+      opts += '<optgroup label="' + area + '">';
+      topicos.forEach(function(t) {
+        opts += '<option value="' + esc(t) + '" data-area="' + esc(area) + '">' + esc(t) + '</option>';
       });
       opts += '</optgroup>';
     });
     topicoSel.innerHTML = opts;
   }
-  // Seleciona o tópico atual (por valor + área mais próxima)
+
+  // Seleciona o topico atual
   if (topicoSel) {
-    const match = [...topicoSel.options].find(o => o.value === q.topico);
-    if (match) topicoSel.value = match.value;
-    else topicoSel.value = 'Não classificado';
+    var found = false;
+    for (var i = 0; i < topicoSel.options.length; i++) {
+      if (topicoSel.options[i].value === q.topico) { topicoSel.value = q.topico; found = true; break; }
+    }
+    if (!found) topicoSel.value = 'N\u00e3o classificado';
   }
 
-  // Se já tem estado, mostra as seções certas
-  if (q.acertou === false) {
-    if (errDiv) errDiv.style.display = 'block';
-    if (motivoSel) motivoSel.value = q.motivo || '';
-    if (obsDiv) obsDiv.style.display = 'block';
-    if (obsInp) obsInp.value = q.obs || '';
-  } else if (q.acertou === true) {
-    if (obsDiv) obsDiv.style.display = 'block';
-    if (obsInp) obsInp.value = q.obs || '';
+  // Se a questao ja foi marcada antes, mostra os detalhes
+  if (q.acertou !== null) {
+    if (btnsDiv) btnsDiv.style.display = 'none';
+    if (detalhesDiv) detalhesDiv.style.display = 'block';
+    if (errDiv) errDiv.style.display = q.acertou === false ? 'block' : 'none';
+    if (acertoDiv) acertoDiv.style.display = q.acertou === true ? 'block' : 'none';
+    if (q.acertou === false && motivoSel) motivoSel.value = q.motivo || '';
+    if (q.acertou === true && motivoAcertoSel) motivoAcertoSel.value = q.obs || '';
+  } else {
+    // Nao marcada ainda: mostra os 3 botoes, esconde detalhes
+    if (btnsDiv) btnsDiv.style.display = 'flex';
+    if (detalhesDiv) detalhesDiv.style.display = 'none';
+    if (errDiv) errDiv.style.display = 'none';
+    if (acertoDiv) acertoDiv.style.display = 'none';
   }
 
   // Posiciona e mostra
@@ -1948,7 +1955,6 @@ function mostrarPopoverQuestao(q) {
   popover.style.left = '50%';
   popover.style.transform = 'translate(-50%, -50%)';
 }
-
 function atualizarStatsSessao() {
   const total = sessaoAtiva.questoes.length;
   const acertos = sessaoAtiva.questoes.filter(q => q.acertou === true).length;
