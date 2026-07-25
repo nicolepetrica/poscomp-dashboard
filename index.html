@@ -803,10 +803,17 @@
         <option value="Sabia mas demorei (>4 min)">Sabia mas demorei (&gt;4 min)</option>
         <option value="Chutei e errei">Chutei e errei</option>
       </select>
-      <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:0.25rem;">Corrigir tópico (opcional):</label>
-      <input type="text" id="popover-topico" placeholder="Tópico correto..." style="width:100%;margin-bottom:0.5rem;"
-        onchange="questaoSelecionada.topico=this.value">
     </div>
+    <div id="popover-observacao" style="display:none;">
+      <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:0.25rem;">Observação (opcional):</label>
+      <input type="text" id="popover-obs" placeholder="Ex: Revisar depois, pegadinha, difícil..."
+        onchange="questaoSelecionada.obs=this.value" style="width:100%;margin-bottom:0.5rem;">
+    </div>
+    <div id="popover-corrigir" style="display:none;">
+      <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:0.25rem;">Corrigir tópico:</label>
+      <select id="popover-topico" onchange="questaoSelecionada.topico=this.value;questaoSelecionada.area=this.selectedOptions[0].dataset.area||questaoSelecionada.area" style="width:100%;margin-bottom:0.25rem;"></select>
+    </div>
+    <button id="popover-confirmar" class="btn btn-primary btn-sm" onclick="fecharPopover()" style="display:none;width:100%;margin-top:0.5rem;">OK</button>
   </div>
 
   <!-- Histórico -->
@@ -1661,7 +1668,7 @@ function migrarErrosAntigos() {
       if (!grupos[key]) grupos[key] = { nome: 'Migrado: ' + (e.simuladoId || 'Avulso'), tipo: 'lista', questoes: [] };
       grupos[key].questoes.push({
         questao: e.questao, topico: e.topico || 'Não classificado',
-        anoRef: null, acertou: false, motivo: (e.tipo || '') + (e.descricao ? ' — ' + e.descricao : ''),
+        anoRef: null, acertou: false, motivo: (e.tipo || '') + (e.descricao ? ' — ' + e.descricao : ''), obs: '',
       });
     });
     Object.values(grupos).forEach(g => {
@@ -1713,7 +1720,7 @@ function gerarGradeProva(ano) {
   sessaoAtiva.questoes = [];
   for (let q = 1; q <= 70; q++) {
     const info = QT[ano][q] || { t: 'Não classificado', a: q <= 20 ? 'Matemática' : q <= 50 ? 'Fundamentos' : 'Tecnologia' };
-    sessaoAtiva.questoes.push({ questao: q, topico: info.t, area: info.a, acertou: null, motivo: '', anoRef: null });
+    sessaoAtiva.questoes.push({ questao: q, topico: info.t, area: info.a, acertou: null, motivo: '', obs: '', anoRef: null });
   }
   document.getElementById('sessao-form').style.display = 'none';
   renderizarGrade();
@@ -1729,7 +1736,7 @@ function adicionarQuestaoLista() {
   const info = QT[ano] && QT[ano][q] ? QT[ano][q] : { t: 'Não classificado' };
   const jaExiste = sessaoAtiva.questoes.find(x => x.questao === q && x.anoRef === ano);
   if (!jaExiste) {
-    sessaoAtiva.questoes.push({ questao: q, topico: info.t, area: info.a || 'Tecnologia', acertou: null, motivo: '', anoRef: ano });
+    sessaoAtiva.questoes.push({ questao: q, topico: info.t, area: info.a || 'Tecnologia', acertou: null, motivo: '', obs: '', anoRef: ano });
   }
   qEl.value = '';
   renderizarListaPreview();
@@ -1846,13 +1853,27 @@ function selecionarQuestaoIdx(idx) {
 function marcarQuestao(acertou) {
   if (!questaoSelecionada) return;
   questaoSelecionada.acertou = acertou;
+  // Limpa motivo se não for erro
   if (acertou !== false) { questaoSelecionada.motivo = ''; }
+
+  // Mostra/oculta as seções conforme o estado
   const errDiv = document.getElementById('popover-tipo-erro');
+  const obsDiv = document.getElementById('popover-observacao');
+  const corrigirDiv = document.getElementById('popover-corrigir');
+  const confirmarBtn = document.getElementById('popover-confirmar');
+
   if (errDiv) errDiv.style.display = acertou === false ? 'block' : 'none';
+  // Observação sempre visível depois de marcar
+  if (obsDiv) obsDiv.style.display = (acertou === true || acertou === false) ? 'block' : 'none';
+  if (corrigirDiv) corrigirDiv.style.display = 'block';
+  if (confirmarBtn) confirmarBtn.style.display = 'block';
+
+  // Preenche observação se já tiver
+  const obsInp = document.getElementById('popover-obs');
+  if (obsInp) obsInp.value = questaoSelecionada.obs || '';
+
   atualizarStatsSessao();
   renderizarGrade();
-  // Não fecha popover se errou (usuário precisa selecionar o tipo)
-  if (acertou !== false) fecharPopover();
 }
 
 function mostrarDetalheQuestao(q) { mostrarPopoverQuestao(q); }
@@ -1868,17 +1889,57 @@ function mostrarPopoverQuestao(q) {
   const overlay = document.getElementById('popover-overlay');
   const titulo = document.getElementById('popover-titulo');
   const errDiv = document.getElementById('popover-tipo-erro');
+  const obsDiv = document.getElementById('popover-observacao');
+  const corrigirDiv = document.getElementById('popover-corrigir');
+  const confirmarBtn = document.getElementById('popover-confirmar');
   const motivoSel = document.getElementById('popover-motivo');
-  const topicoInp = document.getElementById('popover-topico');
+  const obsInp = document.getElementById('popover-obs');
 
   // Título
   const anoLabel = q.anoRef ? ' (' + q.anoRef + ' Q' + q.questao + ')' : ' (Q' + q.questao + ')';
   titulo.textContent = q.topico + anoLabel;
 
-  // Esconde tipo de erro inicialmente, limpa selects
+  // Reseta seções conforme estado atual
   if (errDiv) errDiv.style.display = 'none';
+  if (obsDiv) obsDiv.style.display = 'none';
+  if (corrigirDiv) corrigirDiv.style.display = 'block';
+  if (confirmarBtn) confirmarBtn.style.display = 'block';
   if (motivoSel) motivoSel.value = q.motivo || '';
-  if (topicoInp) topicoInp.value = '';
+  if (obsInp) obsInp.value = q.obs || '';
+
+  // Preenche select de tópicos
+  const topicoSel = document.getElementById('popover-topico');
+  if (topicoSel && topicoSel.options.length === 0) {
+    const areas = { Matemática: [], Fundamentos: [], Tecnologia: [] };
+    TOPICOS_GAPS.forEach(t => { areas[t.area].push(t.topico); });
+    areas['Não classificado'] = ['Não classificado'];
+    let opts = '';
+    Object.entries(areas).forEach(([area, topicos]) => {
+      opts += `<optgroup label="${area}">`;
+      topicos.forEach(t => {
+        opts += `<option value="${esc(t)}" data-area="${esc(area)}">${esc(t)}</option>`;
+      });
+      opts += '</optgroup>';
+    });
+    topicoSel.innerHTML = opts;
+  }
+  // Seleciona o tópico atual (por valor + área mais próxima)
+  if (topicoSel) {
+    const match = [...topicoSel.options].find(o => o.value === q.topico);
+    if (match) topicoSel.value = match.value;
+    else topicoSel.value = 'Não classificado';
+  }
+
+  // Se já tem estado, mostra as seções certas
+  if (q.acertou === false) {
+    if (errDiv) errDiv.style.display = 'block';
+    if (motivoSel) motivoSel.value = q.motivo || '';
+    if (obsDiv) obsDiv.style.display = 'block';
+    if (obsInp) obsInp.value = q.obs || '';
+  } else if (q.acertou === true) {
+    if (obsDiv) obsDiv.style.display = 'block';
+    if (obsInp) obsInp.value = q.obs || '';
+  }
 
   // Posiciona e mostra
   overlay.style.display = 'block';
