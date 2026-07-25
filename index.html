@@ -1156,6 +1156,12 @@ function abrirModalSimulado(id = null) {
       document.getElementById('sim-tec').value = s.tec;
       document.getElementById('sim-tempo').value = s.tempo;
       document.getElementById('sim-obs').value = s.obs || '';
+      // Se tem sessao vinculada, scores sao auto-calculados (readonly)
+      const temSessao = !!(s.sessaoId);
+      ['sim-total','sim-mat','sim-fund','sim-tec'].forEach(fid => {
+        document.getElementById(fid).readOnly = temSessao;
+        document.getElementById(fid).style.opacity = temSessao ? '0.6' : '1';
+      });
       // Se tem sessao vinculada, pega o ano da sessao
       if (s.sessaoId && anoSel) {
         const sess = data.sessoes.find(ss => ss.id === s.sessaoId);
@@ -1167,6 +1173,11 @@ function abrirModalSimulado(id = null) {
   } else {
     ['sim-nome','sim-data','sim-total','sim-mat','sim-fund','sim-tec','sim-tempo','sim-obs'].forEach(id => {
       document.getElementById(id).value = '';
+    });
+    // Reset readOnly para novo simulado
+    ['sim-total','sim-mat','sim-fund','sim-tec'].forEach(fid => {
+      document.getElementById(fid).readOnly = false;
+      document.getElementById(fid).style.opacity = '1';
     });
     if (anoSel) anoSel.value = '';
   }
@@ -1193,10 +1204,27 @@ function salvarSimulado() {
     sessaoId = sessionId;
   }
 
-  // Se esta editando e ja tinha sessao, mantem o vinculo
+  // Se esta editando e selecionou ano, mantem ou cria sessao
   if (editandoSimuladoId && ano) {
     const existing = data.simulados.find(s => s.id === editandoSimuladoId);
-    sessaoId = existing ? existing.sessaoId || null : null;
+    if (existing && existing.sessaoId) {
+      sessaoId = existing.sessaoId;
+    } else {
+      // Simulado existente sem sessao: cria uma nova
+      const sessionId = uid();
+      const questoes = [];
+      for (let q = 1; q <= 70; q++) {
+        const info = QT[ano] && QT[ano][q] ? QT[ano][q] : { t: 'Nao classificado', a: q <= 20 ? 'Matematica' : q <= 50 ? 'Fundamentos' : 'Tecnologia' };
+        questoes.push({ questao: q, topico: info.t, area: info.a, acertou: null, motivo: '', obs: '', anoRef: null });
+      }
+      data.sessoes.push({
+        id: sessionId, tipo: 'prova',
+        nome: document.getElementById('sim-nome').value || ('Prova ' + ano),
+        ano: ano, data: document.getElementById('sim-data').value || new Date().toISOString().slice(0,10),
+        questoes: questoes
+      });
+      sessaoId = sessionId;
+    }
   }
 
   // Se tem sessao vinculada, calcula scores dela
@@ -2087,6 +2115,14 @@ function editarSessao(id) {
   document.getElementById('sessao-form').style.display = 'none';
   renderizarGrade();
   document.getElementById('sessao-grid-title').textContent = sessaoAtiva.nome + ' (editando)';
+  // Troca para a aba Sessoes
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  const btn = document.querySelector('[data-tab="erros"]');
+  if (btn) btn.classList.add('active');
+  const pane = document.getElementById('pane-erros');
+  if (pane) pane.classList.add('active');
+  activeTab = 'erros';
 }
 
 function removerSessao(id) {
