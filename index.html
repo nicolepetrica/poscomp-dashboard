@@ -469,6 +469,7 @@
   .q-cell.acertou { background: rgba(16,185,129,0.25); color: var(--green); }
   .q-cell.errou { background: rgba(239,68,68,0.25); color: var(--red); }
   .q-cell.pulou { background: rgba(255,255,255,0.03); color: var(--muted); }
+  .q-cell.anulada { background: rgba(245,158,11,0.2); color: var(--yellow); text-decoration: line-through; }
   .q-cell.selected { outline: 2px solid var(--cyan); outline-offset: 1px; }
   .q-area-label { font-size: 0.7rem; font-weight: 600; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
   .q-detail {
@@ -484,7 +485,7 @@
     max-width: 320px; width: 90vw;
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
   }
-  .popover-btns { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+  .popover-btns { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
   .popover-btns button {
     flex: 1; padding: 0.5rem; border: 1px solid var(--border);
     border-radius: 8px; font-size: 0.85rem; cursor: pointer;
@@ -494,6 +495,7 @@
   .popover-btns .pop-ok:hover { background: rgba(16,185,129,0.2); border-color: var(--green); }
   .popover-btns .pop-err:hover { background: rgba(239,68,68,0.2); border-color: var(--red); }
   .popover-btns .pop-skip:hover { background: rgba(255,255,255,0.08); }
+  .popover-btns .pop-anul:hover { background: rgba(245,158,11,0.2); border-color: var(--yellow); }
 
   /* Mini bars */
   .mini-bar { display: inline-flex; width: 60px; height: 6px; border-radius: 3px; overflow: hidden; vertical-align: middle; margin-left: 0.25rem; background: rgba(255,255,255,0.08); }
@@ -522,8 +524,7 @@
   <p class="subtitle">Plano de Estudos — Nicole Petrica</p>
   <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap;">
     <div class="countdown">
-      <div class="box"><div class="num" id="days">39</div><div class="label">Dias</div></div>
-      <div class="box"><div class="num" id="hours">—</div><div class="label">Horas</div></div>
+      <div class="box"><div class="num" id="days">39</div><div class="label">Dias até a prova</div></div>
       <div class="box"><div class="num">22</div><div class="label">Provas analisadas</div></div>
       <div class="box"><div class="num" id="sim-count">0</div><div class="label">Simulados feitos</div></div>
     </div>
@@ -793,6 +794,7 @@
       <button class="pop-ok" onclick="marcarQuestao(true)">✅ Acertei</button>
       <button class="pop-err" onclick="marcarQuestao(false)">❌ Errei</button>
       <button class="pop-skip" onclick="marcarQuestao(null)">⚪ Pular</button>
+      <button class="pop-anul" onclick="marcarQuestao('anulada')">🚫 Anulada</button>
     </div>
     <div id="popover-detalhes" style="display:none;">
       <div id="popover-tipo-erro" style="display:none;margin-top:0.5rem;">
@@ -1115,10 +1117,7 @@ const examDate = new Date('2026-08-30T09:00:00-03:00');
 function updateCountdown() {
   const diff = examDate - new Date();
   const days = Math.floor(diff / (1000*60*60*24));
-  const hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
-  const mins = Math.floor((diff % (1000*60*60)) / (1000*60));
   document.getElementById('days').textContent = days > 0 ? days : 0;
-  document.getElementById('hours').textContent = hours + 'h ' + mins + 'm';
 }
 updateCountdown();
 setInterval(updateCountdown, 60000);
@@ -1249,9 +1248,12 @@ function atualizarStatsCards() {
     return;
   }
   const ultimo = data.simulados[data.simulados.length - 1];
-  document.getElementById('stat-math').textContent = ultimo.mat || '—';
-  document.getElementById('stat-fund').textContent = ultimo.fund || '—';
-  document.getElementById('stat-tec').textContent = ultimo.tec || '—';
+  const matOk = ultimo.mat !== undefined && ultimo.mat !== null && ultimo.mat !== '';
+  const fundOk = ultimo.fund !== undefined && ultimo.fund !== null && ultimo.fund !== '';
+  const tecOk = ultimo.tec !== undefined && ultimo.tec !== null && ultimo.tec !== '';
+  document.getElementById('stat-math').textContent = matOk ? ultimo.mat + '/20' : '—';
+  document.getElementById('stat-fund').textContent = fundOk ? ultimo.fund + '/30' : '—';
+  document.getElementById('stat-tec').textContent = tecOk ? ultimo.tec + '/20' : '—';
 }
 
 // =============================================================
@@ -1360,6 +1362,7 @@ function renderizarScatterGaps() {
   TOPICOS_GAPS.forEach(({topico}) => { topicoStats[topico] = { total: 0, acertos: 0 }; });
   data.sessoes.forEach(s => {
     s.questoes.forEach(q => {
+      if (q.acertou === 'anulada') return;
       const t = q.topico || 'Não classificado';
       if (topicoStats[t]) { topicoStats[t].total++; if (q.acertou === true) topicoStats[t].acertos++; }
     });
@@ -1794,7 +1797,7 @@ function renderizarGrade() {
       html += `<div class="q-area-label" style="color:${areaColors[area]};">${area} (Q${ini}-${fim})</div>`;
       html += '<div class="q-grid">';
       qs.forEach(q => {
-        const cls = q.acertou === true ? 'acertou' : q.acertou === false ? 'errou' : 'pulou';
+        const cls = q.acertou === true ? 'acertou' : q.acertou === false ? 'errou' : q.acertou === 'anulada' ? 'anulada' : 'pulou';
         const sel = questaoSelecionada && questaoSelecionada.questao === q.questao && questaoSelecionada.anoRef === q.anoRef ? ' selected' : '';
         html += `<div class="q-cell ${cls}${sel}" onclick="selecionarQuestao(${q.questao},null)" title="${q.topico}">${q.questao}</div>`;
       });
@@ -1803,7 +1806,7 @@ function renderizarGrade() {
   } else {
     html += '<div class="q-grid" style="grid-template-columns:repeat(auto-fill,minmax(36px,1fr));">';
     sessaoAtiva.questoes.sort((a,b) => (a.anoRef||'').localeCompare(b.anoRef||'') || a.questao - b.questao).forEach((q, i) => {
-      const cls = q.acertou === true ? 'acertou' : q.acertou === false ? 'errou' : 'pulou';
+      const cls = q.acertou === true ? 'acertou' : q.acertou === false ? 'errou' : q.acertou === 'anulada' ? 'anulada' : 'pulou';
       const sel = questaoSelecionada && questaoSelecionada === sessaoAtiva.questoes[i] ? ' selected' : '';
       html += `<div class="q-cell ${cls}${sel}" onclick="selecionarQuestaoIdx(${i})" title="${q.anoRef||''} Q${q.questao}: ${q.topico}">${q.anoRef?q.anoRef.slice(2):''}Q${q.questao}</div>`;
     });
@@ -1863,7 +1866,6 @@ function marcarQuestao(acertou) {
   questaoSelecionada.acertou = acertou;
   if (acertou !== false) { questaoSelecionada.motivo = ''; }
 
-  // Esconde os 3 botoes, mostra os detalhes
   const btnsDiv = document.querySelector('#popover-questao .popover-btns');
   const detalhesDiv = document.getElementById('popover-detalhes');
   const errDiv = document.getElementById('popover-tipo-erro');
@@ -1877,6 +1879,9 @@ function marcarQuestao(acertou) {
   if (acertou === true) {
     const sel = document.getElementById('popover-motivo-acerto');
     if (sel) sel.value = questaoSelecionada.obs || '';
+  }
+  if (acertou === 'anulada') {
+    questaoSelecionada.motivo = 'Anulada';
   }
 
   atualizarStatsSessao();
@@ -1959,8 +1964,11 @@ function atualizarStatsSessao() {
   const total = sessaoAtiva.questoes.length;
   const acertos = sessaoAtiva.questoes.filter(q => q.acertou === true).length;
   const erros = sessaoAtiva.questoes.filter(q => q.acertou === false).length;
-  const pct = total > 0 ? Math.round(acertos / total * 100) : 0;
-  document.getElementById('sessao-stats').innerHTML = `${acertos}✓ / ${erros}✗ / ${total - acertos - erros}— = <strong>${pct}%</strong>`;
+  const anuladas = sessaoAtiva.questoes.filter(q => q.acertou === 'anulada').length;
+  const pulos = total - acertos - erros - anuladas;
+  const validas = total - anuladas;
+  const pct = validas > 0 ? Math.round(acertos / validas * 100) : 0;
+  document.getElementById('sessao-stats').innerHTML = `${acertos}✓ / ${erros}✗ / ${pulos}— / ${anuladas}🚫 = <strong>${pct}%</strong>`;
 }
 
 function cancelarSessao() {
@@ -2025,11 +2033,14 @@ function renderizarSessoes() {
     const total = s.questoes.length;
     const acertos = s.questoes.filter(q => q.acertou === true).length;
     const erros = s.questoes.filter(q => q.acertou === false).length;
-    const pct = total > 0 ? Math.round(acertos / total * 100) : 0;
+    const anuladas = s.questoes.filter(q => q.acertou === 'anulada').length;
+    const validas = total - anuladas;
+    const pct = validas > 0 ? Math.round(acertos / validas * 100) : 0;
 
     // Por área
     const porArea = {};
     s.questoes.forEach(q => {
+      if (q.acertou === 'anulada') return;
       const area = q.area || (q.questao <= 20 ? 'Matemática' : q.questao <= 50 ? 'Fundamentos' : 'Tecnologia');
       if (!porArea[area]) porArea[area] = { total: 0, acertos: 0 };
       porArea[area].total++;
@@ -2039,7 +2050,7 @@ function renderizarSessoes() {
     const areaBars = Object.entries(porArea).map(([a, d]) => {
       const ap = d.total > 0 ? Math.round(d.acertos/d.total*100) : 0;
       const color = a === 'Matemática' ? 'var(--blue)' : a === 'Fundamentos' ? 'var(--purple)' : 'var(--cyan)';
-      return `<span style="font-size:0.7rem;">${a.slice(0,3)}: ${ap}% <span class="mini-bar"><span class="mini-bar-seg mb-green" style="width:${ap}%;background:${color};"></span><span class="mini-bar-seg mb-red" style="width:${100-ap}%;"></span></span></span>`;
+      return `<span style="font-size:0.7rem;">${a.slice(0,3)}: ${d.acertos}/${d.total} <span class="mini-bar"><span class="mini-bar-seg mb-green" style="width:${ap}%;background:${color};"></span><span class="mini-bar-seg mb-red" style="width:${100-ap}%;"></span></span></span>`;
     }).join(' ');
 
     return `<div class="sessao-card" onclick="toggleSessaoCard(this, '${s.id}')">
@@ -2074,13 +2085,13 @@ function toggleSessaoCard(card, id) {
         const qs = s.questoes.filter(q => q.questao >= ini && q.questao <= fim);
         return `<div class="q-area-label" style="color:${areaColors[area]};">${area}</div><div class="q-grid">${
           qs.map(q => {
-            const cls = q.acertou === true ? 'acertou' : q.acertou === false ? 'errou' : 'pulou';
+            const cls = q.acertou === true ? 'acertou' : q.acertou === false ? 'errou' : q.acertou === 'anulada' ? 'anulada' : 'pulou';
             return `<div class="q-cell ${cls}" title="${q.topico}">${q.questao}</div>`;
           }).join('')
         }</div>`;
       }).join('') : `<div class="q-grid" style="grid-template-columns:repeat(auto-fill,minmax(36px,1fr));">${
         s.questoes.sort((a,b) => (a.anoRef||'').localeCompare(b.anoRef||'')||a.questao-b.questao).map(q => {
-          const cls = q.acertou === true ? 'acertou' : q.acertou === false ? 'errou' : 'pulou';
+          const cls = q.acertou === true ? 'acertou' : q.acertou === false ? 'errou' : q.acertou === 'anulada' ? 'anulada' : 'pulou';
           return `<div class="q-cell ${cls}" title="${q.anoRef||''} Q${q.questao}: ${q.topico}">${q.anoRef?q.anoRef.slice(2):''}Q${q.questao}</div>`;
         }).join('')
       }</div>`;
@@ -2103,6 +2114,7 @@ function renderizarRecomendacoes() {
   const topicoStats = {};
   data.sessoes.forEach(s => {
     s.questoes.forEach(q => {
+      if (q.acertou === 'anulada') return;
       const t = q.topico || 'Não classificado';
       if (!topicoStats[t]) topicoStats[t] = { total: 0, acertos: 0, erros: 0 };
       topicoStats[t].total++;
