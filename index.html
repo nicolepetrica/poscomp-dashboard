@@ -455,6 +455,52 @@
 
   .ka { font-style: italic; }
 
+  /* Question Grid */
+  .q-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin: 0.5rem 0; }
+  .q-cell {
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; font-size: 0.72rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+    background: rgba(255,255,255,0.05); color: var(--muted);
+    user-select: none;
+  }
+  .q-cell:hover { background: rgba(255,255,255,0.12); }
+  .q-cell.acertou { background: rgba(16,185,129,0.25); color: var(--green); }
+  .q-cell.errou { background: rgba(239,68,68,0.25); color: var(--red); }
+  .q-cell.pulou { background: rgba(255,255,255,0.03); color: var(--muted); }
+  .q-cell.selected { outline: 2px solid var(--cyan); outline-offset: 1px; }
+  .q-area-label { font-size: 0.7rem; font-weight: 600; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  .q-detail {
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem; margin-top: 0.75rem;
+  }
+
+  /* Popover */
+  .popover {
+    position: fixed; z-index: 200;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1rem;
+    max-width: 320px; width: 90vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .popover-btns { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+  .popover-btns button {
+    flex: 1; padding: 0.5rem; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 0.85rem; cursor: pointer;
+    background: rgba(255,255,255,0.03); color: var(--text);
+    transition: all 0.15s;
+  }
+  .popover-btns .pop-ok:hover { background: rgba(16,185,129,0.2); border-color: var(--green); }
+  .popover-btns .pop-err:hover { background: rgba(239,68,68,0.2); border-color: var(--red); }
+  .popover-btns .pop-skip:hover { background: rgba(255,255,255,0.08); }
+
+  /* Mini bars */
+  .mini-bar { display: inline-flex; width: 60px; height: 6px; border-radius: 3px; overflow: hidden; vertical-align: middle; margin-left: 0.25rem; background: rgba(255,255,255,0.08); }
+  .mini-bar-seg { height: 100%; }
+  .mb-green { background: var(--green); }
+  .mb-red { background: rgba(239,68,68,0.4); }
+
   @media (max-width: 768px) {
     body { padding: 0.5rem; }
     .stats { grid-template-columns: 1fr; }
@@ -510,8 +556,8 @@
   <button class="tab-btn" data-tab="simulados">📝 Simulados</button>
   <button class="tab-btn" data-tab="gaps">🎯 Matriz de Gaps</button>
   <button class="tab-btn" data-tab="checklist">✅ Checklist</button>
-  <button class="tab-btn" data-tab="erros">🔍 Erros</button>
-  <button class="tab-btn" data-tab="formulas">📐 Fórmulas</button>
+  <button class="tab-btn" data-tab="erros">📋 Sessões</button>
+  <button class="tab-btn" data-tab="formulas">📝 Anotações</button>
   <button class="tab-btn" data-tab="estatisticas">📈 Estatísticas</button>
 </nav>
 
@@ -598,74 +644,7 @@
   <p style="color:var(--muted);margin-bottom:0.75rem;font-size:0.85rem;">
     🔴 Essencial &nbsp;|&nbsp; 🟡 Importante &nbsp;|&nbsp; ⚪ Se der &nbsp;|&nbsp; Meta: 6-8h/semana
   </p>
-
-  <div class="weeks">
-    <div class="week">
-      <div class="week-header"><h3>Semana 1 — Diagnóstico</h3><span class="dates">21–26 Jul</span></div>
-      <p class="objective">Saber exatamente onde você está. Sem isso, o resto é tiro no escuro.</p>
-      <ul class="tasks">
-        <li><span class="dot dot-red"></span> <strong>Simulado 1 completo</strong> (4h cronometrado)</li>
-        <li><span class="dot dot-red"></span> <strong>Corrigir com gabarito</strong> — anotar por tópico</li>
-        <li><span class="dot dot-yellow"></span> <strong>Análise de erros</strong> — classificar cada</li>
-        <li><span class="dot dot-yellow"></span> Montar <strong>matriz fraqueza/força</strong></li>
-        <li><span class="dot dot-muted"></span> Refazer as 5 questões mais difíceis</li>
-      </ul>
-    </div>
-    <div class="week">
-      <div class="week-header"><h3>Semana 2 — Fundamentos</h3><span class="dates">27 Jul – 2 Ago</span></div>
-      <p class="objective">Atacar a área de maior peso.</p>
-      <ul class="tasks">
-        <li><span class="dot dot-red"></span> <strong>2 sessões</strong> nos 3 piores tópicos de Fundamentos</li>
-        <li><span class="dot dot-red"></span> <strong>Simulado 2 completo</strong> (4h)</li>
-        <li><span class="dot dot-yellow"></span> Corrigir, atualizar matriz</li>
-        <li><span class="dot dot-yellow"></span> Comparar evolução Fundamentos</li>
-        <li><span class="dot dot-muted"></span> Revisar 1 tópico fraco de Matemática</li>
-      </ul>
-    </div>
-    <div class="week">
-      <div class="week-header"><h3>Semana 3 — Matemática + Tecnologia</h3><span class="dates">3–9 Ago</span></div>
-      <p class="objective">Cobrir as áreas que juntas valem mais da metade da prova.</p>
-      <ul class="tasks">
-        <li><span class="dot dot-red"></span> <strong>2 sessões de Matemática</strong></li>
-        <li><span class="dot dot-red"></span> <strong>2 sessões de Tecnologia</strong></li>
-        <li><span class="dot dot-yellow"></span> <strong>Simulado 3 completo</strong> (4h)</li>
-        <li><span class="dot dot-yellow"></span> Corrigir, atualizar matriz</li>
-        <li><span class="dot dot-muted"></span> 20 questões avulsas de Mat + Tec</li>
-      </ul>
-    </div>
-    <div class="week">
-      <div class="week-header"><h3>Semana 4 — Fechando Lacunas</h3><span class="dates">10–16 Ago</span></div>
-      <p class="objective">Atacar o que ainda está frágil depois de 3 simulados.</p>
-      <ul class="tasks">
-        <li><span class="dot dot-red"></span> <strong>Refazer TODAS as erradas</strong> dos 3 simulados</li>
-        <li><span class="dot dot-red"></span> <strong>2 sessões</strong> nos tópicos crônicos</li>
-        <li><span class="dot dot-yellow"></span> <strong>Simulado 4 completo</strong> (4h)</li>
-        <li><span class="dot dot-yellow"></span> Corrigir, atualizar matriz</li>
-        <li><span class="dot dot-muted"></span> Treinar estratégia de chute</li>
-      </ul>
-    </div>
-    <div class="week">
-      <div class="week-header"><h3>Semana 5 — Revisão + Ritmo</h3><span class="dates">17–23 Ago</span></div>
-      <p class="objective">Consolidar, não aprender. Ritmo de prova > conteúdo novo.</p>
-      <ul class="tasks">
-        <li><span class="dot dot-red"></span> <strong>Revisão de todas as erradas</strong> dos 4 simulados</li>
-        <li><span class="dot dot-red"></span> Criar <strong>1 página de fórmulas por área</strong> (à mão)</li>
-        <li><span class="dot dot-red"></span> <strong>Preparar setup técnico</strong> — Chrome, webcam, internet</li>
-        <li><span class="dot dot-yellow"></span> <strong>Mini-simulado</strong>: 35 questões em 2h</li>
-        <li><span class="dot dot-muted"></span> Última sessão no tópico que ainda derruba</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="week" style="margin-top:1rem;border:1px dashed var(--border);background:rgba(139,92,246,0.05);">
-    <div class="week-header"><h3>🧘 Véspera</h3><span class="dates">24–29 Ago</span></div>
-    <p class="objective">Semana ZERO de estudo pesado. Só manutenção.</p>
-    <ul class="tasks">
-      <li><span class="dot dot-red"></span> Revisar as 1-páginas de fórmulas (30 min/dia máx)</li>
-      <li><span class="dot dot-red"></span> Dormir bem todos os dias</li>
-      <li><span class="dot dot-red"></span> <strong>29/08: NÃO estudar.</strong> Filme, comida boa, dormir cedo.</li>
-    </ul>
-  </div>
+  <div id="cronograma-container"></div>
 </div>
 
 <!-- Dia da Prova -->
@@ -776,34 +755,66 @@
 <!-- ================================================================ -->
 <div class="tab-pane" id="pane-erros">
 <div class="section">
-  <h2>🔍 Classificação de Erros</h2>
-  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Registre cada erro para identificar padrões e focar o estudo.</p>
+  <h2>📋 Sessões de Estudo</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Registre provas completas ou listas por tema. Clique nas questões para marcar acerto/erro.</p>
 
-  <div style="display:grid;grid-template-columns:1fr 2fr;gap:1rem;">
-    <div style="background:rgba(255,255,255,0.03);padding:1rem;border-radius:8px;">
-      <h3 style="margin-top:0;">Novo erro</h3>
-      <div class="form-group"><label>Simulado</label><select id="err-simulado"></select></div>
-      <div class="form-group"><label>Questão #</label><input type="number" id="err-questao" min="1" max="70"></div>
-      <div class="form-group"><label>Tópico</label><select id="err-topico"></select></div>
-      <div class="form-group"><label>Tipo de erro</label><select id="err-tipo">
-        <option>Não sabia o conceito</option>
-        <option>Sabia mas errei (atenção)</option>
-        <option>Sabia mas demorei (>4 min)</option>
-        <option>Chutei certo (sorte)</option>
-      </select></div>
-      <div class="form-group"><label>Descrição</label><input type="text" id="err-desc" placeholder="O que aconteceu?"></div>
-      <button class="btn btn-primary" onclick="adicionarErro()" style="width:100%;">Registrar erro</button>
-    </div>
-    <div>
-      <h3 style="margin-top:0;">Histórico</h3>
-      <div style="margin-bottom:0.5rem;">
-        <select id="filtro-erro-simulado" onchange="renderizarErros()" style="width:auto;min-width:160px;">
-          <option value="">Todos os simulados</option>
-        </select>
+  <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+    <button class="btn btn-primary" onclick="novaSessao('prova')">📝 Prova inteira</button>
+    <button class="btn" onclick="novaSessao('lista')">📋 Lista por tema</button>
+  </div>
+
+  <!-- Formulário de criação de sessão -->
+  <div id="sessao-form" style="display:none;background:rgba(255,255,255,0.03);padding:1rem;border-radius:8px;margin-bottom:1rem;"></div>
+
+  <!-- Grid visual da sessao ativa -->
+  <div id="sessao-grid-container" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+      <h3 style="margin:0;" id="sessao-grid-title">Sessão</h3>
+      <div>
+        <span id="sessao-stats" style="font-size:0.8rem;color:var(--muted);margin-right:1rem;"></span>
+        <button class="btn btn-sm" onclick="cancelarSessao()">Cancelar</button>
+        <button class="btn btn-sm btn-primary" onclick="salvarSessao()">💾 Salvar sessão</button>
       </div>
-      <div id="erros-lista" style="font-size:0.82rem;color:var(--muted);">Nenhum erro registrado ainda.</div>
+    </div>
+    <div id="sessao-grid"></div>
+    <div id="sessao-detail" class="q-detail" style="display:none;"></div>
+    <div id="sessao-lista-add" style="display:none;margin-top:0.75rem;"></div>
+  </div>
+
+  <!-- Popover overlay para fechar ao clicar fora -->
+  <div id="popover-overlay" style="display:none;position:fixed;inset:0;z-index:199;" onclick="fecharPopover()"></div>
+  <!-- Popover de marcação de questão -->
+  <div class="popover" id="popover-questao" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+      <strong id="popover-titulo" style="font-size:0.85rem;">Questão</strong>
+      <button class="btn btn-sm" onclick="fecharPopover()" style="padding:0 0.4rem;">✕</button>
+    </div>
+    <div class="popover-btns">
+      <button class="pop-ok" onclick="marcarQuestao(true)">✅ Acertei</button>
+      <button class="pop-err" onclick="marcarQuestao(false)">❌ Errei</button>
+      <button class="pop-skip" onclick="marcarQuestao(null)">⚪ Pular</button>
+    </div>
+    <div id="popover-tipo-erro" style="display:none;">
+      <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:0.25rem;">Tipo de erro:</label>
+      <select id="popover-motivo" onchange="questaoSelecionada.motivo=this.value" style="width:100%;margin-bottom:0.4rem;">
+        <option value="">Selecione...</option>
+        <option value="Não sabia o conceito">Não sabia o conceito</option>
+        <option value="Errei por falta de atenção">Errei por falta de atenção</option>
+        <option value="Sabia mas demorei (>4 min)">Sabia mas demorei (&gt;4 min)</option>
+        <option value="Chutei e errei">Chutei e errei</option>
+      </select>
+      <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:0.25rem;">Corrigir tópico (opcional):</label>
+      <input type="text" id="popover-topico" placeholder="Tópico correto..." style="width:100%;margin-bottom:0.5rem;"
+        onchange="questaoSelecionada.topico=this.value">
     </div>
   </div>
+
+  <!-- Histórico -->
+  <h3 style="margin-top:1.5rem;">📚 Histórico</h3>
+  <div id="sessoes-lista" style="font-size:0.82rem;color:var(--muted);">Nenhuma sessão registrada ainda.</div>
+
+  <!-- Recomendações -->
+  <div id="sessoes-recomendacoes" style="margin-top:1rem;"></div>
 </div>
 </div>
 
@@ -812,7 +823,7 @@
 <!-- ================================================================ -->
 <div class="tab-pane" id="pane-formulas">
 <div class="section">
-  <h2>📐 Notas e Fórmulas</h2>
+  <h2>📝 Anotações</h2>
   <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Markdown com suporte a LaTeX (<code>$E=mc^2$</code> para inline, <code>$$\\int_a^b$$</code> para bloco).</p>
 
   <div class="notes-layout">
@@ -954,6 +965,32 @@
 <!-- ================================================================ -->
 <!-- SCRIPTS -->
 <!-- ================================================================ -->
+<script>
+const QT={
+  2002:{1:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},2:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"baixa"},3:{t:"Banco de Dados",a:"Matem\u00e1tica",c:"baixa"},4:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},5:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},6:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},7:{t:"\u00c1lgebra",a:"Matem\u00e1tica",c:"baixa"},8:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},9:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},10:{t:"\u00c1lgebra",a:"Matem\u00e1tica",c:"alta"},11:{t:"Banco de Dados",a:"Matem\u00e1tica",c:"baixa"},12:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},13:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},14:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},15:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},16:{t:"Teoria dos Grafos",a:"Matem\u00e1tica",c:"baixa"},17:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},18:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},19:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},20:{t:"Banco de Dados",a:"Matem\u00e1tica",c:"baixa"},41:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},42:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},43:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},44:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},45:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},46:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},47:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},48:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},49:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},50:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},51:{t:"Processamento de Imagens",a:"Tecnologia",c:"baixa"},52:{t:"Processamento de Imagens",a:"Tecnologia",c:"alta"},53:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},54:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},55:{t:"Sistemas Operacionais",a:"Tecnologia",c:"baixa"},56:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},57:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},58:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},59:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},60:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},61:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},62:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},63:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},64:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},65:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},66:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},67:{t:"Compiladores",a:"Tecnologia",c:"alta"},68:{t:"Compiladores",a:"Tecnologia",c:"alta"},69:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},70:{t:"Banco de Dados",a:"Tecnologia",c:"alta"}},
+  2003:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},2:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},3:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},4:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},5:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},6:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},7:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},8:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},9:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},10:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},11:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},12:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},13:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},14:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},15:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},16:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},17:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},18:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},19:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},20:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},41:{t:"N\u00e3o classificado",a:"Tecnologia",c:"nenhuma"},42:{t:"N\u00e3o classificado",a:"Tecnologia",c:"nenhuma"},43:{t:"N\u00e3o classificado",a:"Tecnologia",c:"nenhuma"},44:{t:"Geometria Anal\u00edtica",a:"Tecnologia",c:"baixa"},45:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},81:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},82:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},83:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},84:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},85:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},86:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},87:{t:"Compiladores",a:"Tecnologia",c:"alta"},88:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Tecnologia",c:"alta"},89:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},90:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},91:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},92:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},93:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},94:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},95:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},96:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},97:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},98:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},99:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},100:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},101:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},102:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},103:{t:"Compiladores",a:"Tecnologia",c:"alta"},104:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},105:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},106:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},107:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},108:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},109:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},110:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"}},
+  2004:{1:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},10:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},20:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},40:{t:"\u00c1lgebra",a:"Fundamentos",c:"baixa"},41:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},42:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},43:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},44:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},45:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},46:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},47:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},48:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},49:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},50:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},51:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},52:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},53:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},54:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},55:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"baixa"},56:{t:"Processamento de Imagens",a:"Tecnologia",c:"alta"},57:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},58:{t:"Processamento de Imagens",a:"Tecnologia",c:"alta"},59:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},60:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},61:{t:"Compiladores",a:"Tecnologia",c:"alta"},62:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},63:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},64:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"alta"},65:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},66:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"alta"},67:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"},68:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},69:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},70:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"}},
+  2005:{1:{t:"\u00c1lgebra",a:"Matem\u00e1tica",c:"baixa"},2:{t:"\u00c1lgebra",a:"Matem\u00e1tica",c:"baixa"},3:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},4:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},5:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},6:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},7:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},8:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},9:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},10:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},11:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},12:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},13:{t:"\u00c1lgebra",a:"Matem\u00e1tica",c:"baixa"},14:{t:"Banco de Dados",a:"Matem\u00e1tica",c:"baixa"},15:{t:"Linguagens Formais / Aut\u00f4matos",a:"Matem\u00e1tica",c:"baixa"},16:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},17:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},18:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},19:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},20:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"baixa"},21:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},22:{t:"Engenharia de Software",a:"Fundamentos",c:"alta"},23:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},24:{t:"Banco de Dados",a:"Fundamentos",c:"baixa"},25:{t:"Estruturas de Dados",a:"Fundamentos",c:"baixa"},26:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},27:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},28:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},29:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},30:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},31:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},32:{t:"\u00c1lgebra",a:"Fundamentos",c:"baixa"},33:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},34:{t:"N\u00e3o classificado",a:"Fundamentos",c:"nenhuma"},35:{t:"Teoria dos Grafos",a:"Fundamentos",c:"baixa"},36:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},37:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},38:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},39:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},40:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},41:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},42:{t:"Banco de Dados",a:"Fundamentos",c:"alta"},43:{t:"Banco de Dados",a:"Fundamentos",c:"alta"},44:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},45:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},46:{t:"\u00c1lgebra Linear",a:"Fundamentos",c:"baixa"},47:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},48:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},49:{t:"\u00c1lgebra Linear",a:"Fundamentos",c:"baixa"},50:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},51:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},52:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},53:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},54:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},55:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},56:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},57:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},58:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},59:{t:"\u00c1lgebra Linear",a:"Tecnologia",c:"baixa"},60:{t:"\u00c1lgebra Linear",a:"Tecnologia",c:"alta"},61:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},62:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},63:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},64:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},65:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},66:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},67:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},68:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},69:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},70:{t:"Banco de Dados",a:"Tecnologia",c:"alta"}},
+  2006:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},2:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},3:{t:"Combinat\u00f3ria",a:"Matem\u00e1tica",c:"alta"},4:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},5:{t:"\u00c1lgebra",a:"Matem\u00e1tica",c:"baixa"},6:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},7:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},8:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},9:{t:"\u00c1lgebra",a:"Matem\u00e1tica",c:"baixa"},10:{t:"\u00c1lgebra",a:"Matem\u00e1tica",c:"baixa"},11:{t:"Teoria dos Grafos",a:"Matem\u00e1tica",c:"baixa"},12:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},13:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},14:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},15:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},16:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},17:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},18:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},19:{t:"\u00c1lgebra",a:"Matem\u00e1tica",c:"baixa"},20:{t:"Redes de Computadores",a:"Matem\u00e1tica",c:"baixa"},21:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},22:{t:"Probabilidade e Estat\u00edstica",a:"Fundamentos",c:"baixa"},23:{t:"N\u00e3o classificado",a:"Fundamentos",c:"nenhuma"},24:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},25:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"baixa"},26:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},27:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},28:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},29:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},30:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},31:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},32:{t:"\u00c1lgebra Linear",a:"Fundamentos",c:"baixa"},33:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},34:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},35:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},36:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},37:{t:"Banco de Dados",a:"Fundamentos",c:"baixa"},38:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},39:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},40:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},41:{t:"Banco de Dados",a:"Fundamentos",c:"alta"},42:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},43:{t:"\u00c1lgebra Linear",a:"Fundamentos",c:"baixa"},44:{t:"Banco de Dados",a:"Fundamentos",c:"alta"},45:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},46:{t:"Banco de Dados",a:"Fundamentos",c:"baixa"},47:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},48:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},49:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},50:{t:"Geometria Anal\u00edtica",a:"Fundamentos",c:"baixa"},51:{t:"Processamento de Imagens",a:"Tecnologia",c:"alta"},52:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},53:{t:"\u00c1lgebra Linear",a:"Tecnologia",c:"baixa"},54:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},55:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},56:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},57:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},58:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},59:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},60:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},61:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},62:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},63:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},64:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},65:{t:"\u00c1lgebra Linear",a:"Tecnologia",c:"baixa"},66:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},67:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},68:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},69:{t:"Compiladores",a:"Tecnologia",c:"baixa"},70:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"}},
+  2007:{1:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},2:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},3:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},4:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},5:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},6:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"baixa"},7:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},8:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},9:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},10:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},11:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},12:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},13:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},14:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},15:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},16:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},17:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},18:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},19:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"baixa"},20:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},21:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},22:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Fundamentos",c:"baixa"},23:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},24:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},25:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},26:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},27:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},28:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},29:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},30:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},31:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},32:{t:"\u00c1lgebra",a:"Fundamentos",c:"baixa"},33:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},34:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},35:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},36:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},37:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},38:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},39:{t:"Teoria dos Grafos",a:"Fundamentos",c:"baixa"},40:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},41:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},42:{t:"\u00c1lgebra",a:"Fundamentos",c:"baixa"},43:{t:"Teoria dos Grafos",a:"Fundamentos",c:"baixa"},44:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},45:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},46:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},47:{t:"\u00c1lgebra Linear",a:"Fundamentos",c:"baixa"},48:{t:"Estruturas de Dados",a:"Fundamentos",c:"baixa"},49:{t:"\u00c1lgebra Linear",a:"Fundamentos",c:"baixa"},50:{t:"Geometria Anal\u00edtica",a:"Fundamentos",c:"alta"},51:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},52:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},53:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},54:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},55:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},56:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},57:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},58:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},59:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},60:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},61:{t:"\u00c1lgebra Linear",a:"Tecnologia",c:"alta"},62:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},63:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},64:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},65:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},66:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},67:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},68:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},69:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},70:{t:"Geometria Anal\u00edtica",a:"Tecnologia",c:"alta"}},
+  2008:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},2:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},3:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},4:{t:"Processamento de Imagens",a:"Matem\u00e1tica",c:"alta"},5:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},6:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},7:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},8:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},9:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},10:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},11:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},12:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},13:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},14:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},15:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},16:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},17:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},18:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},19:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},20:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},21:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},22:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},23:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},24:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},25:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},26:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},27:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},28:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},29:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},30:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},31:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},32:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},33:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},34:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},35:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"alta"},36:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},37:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},38:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},39:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},40:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},41:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},42:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},43:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},44:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},45:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},46:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},47:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"alta"},48:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},49:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},50:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},51:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},52:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},53:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},54:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},55:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},56:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},57:{t:"Geometria Anal\u00edtica",a:"Tecnologia",c:"alta"},58:{t:"Combinat\u00f3ria",a:"Tecnologia",c:"alta"},59:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},60:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},61:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},62:{t:"C\u00e1lculo",a:"Tecnologia",c:"baixa"},63:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},64:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},65:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},66:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},67:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Tecnologia",c:"baixa"},68:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Tecnologia",c:"alta"},69:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Tecnologia",c:"alta"},70:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"}},
+  2009:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},2:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},3:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"baixa"},4:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},5:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},6:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"baixa"},7:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},8:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},9:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"alta"},10:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},11:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"alta"},12:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},13:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},14:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"baixa"},15:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},16:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},17:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},18:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},19:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},20:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},21:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},22:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},23:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},24:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},25:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},26:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},27:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},28:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},29:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},30:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},31:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},32:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},33:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},34:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},35:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"baixa"},36:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},37:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},40:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"baixa"},41:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},42:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"baixa"},43:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},44:{t:"\u00c1lgebra Linear",a:"Fundamentos",c:"baixa"},45:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},46:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},47:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},48:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"baixa"},49:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"alta"},50:{t:"N\u00e3o classificado",a:"Fundamentos",c:"nenhuma"},51:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},52:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},53:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},54:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},55:{t:"Compiladores",a:"Tecnologia",c:"alta"},56:{t:"Compiladores",a:"Tecnologia",c:"baixa"},57:{t:"Compiladores",a:"Tecnologia",c:"baixa"},58:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"baixa"},59:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"baixa"},60:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},61:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},62:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},63:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},64:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},65:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},66:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},67:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},68:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},69:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},70:{t:"Banco de Dados",a:"Tecnologia",c:"alta"}},
+  2010:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},2:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},3:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},4:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},5:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},6:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"baixa"},7:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},8:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},9:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},10:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},11:{t:"Combinat\u00f3ria",a:"Matem\u00e1tica",c:"alta"},12:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},13:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},14:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"baixa"},15:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"alta"},16:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},17:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},18:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},19:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},20:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"baixa"},21:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},22:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},23:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},24:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},25:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"baixa"},26:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},27:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"baixa"},28:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},29:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},30:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},31:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},32:{t:"\u00c1lgebra",a:"Fundamentos",c:"baixa"},33:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},34:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},35:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},36:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},37:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},38:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},39:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},40:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"alta"},41:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},42:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},43:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},44:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},45:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},46:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},47:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},48:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},49:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},50:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"baixa"},51:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},52:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},53:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},54:{t:"Processamento de Imagens",a:"Tecnologia",c:"baixa"},55:{t:"\u00c1lgebra Linear",a:"Tecnologia",c:"alta"},56:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},57:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"alta"},58:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},59:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},60:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"alta"},61:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},62:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},63:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},64:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},65:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},66:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},67:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},68:{t:"Compiladores",a:"Tecnologia",c:"alta"},69:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},70:{t:"Banco de Dados",a:"Tecnologia",c:"alta"}},
+  2011:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},2:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},3:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},4:{t:"Teoria dos Grafos",a:"Matem\u00e1tica",c:"baixa"},5:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},6:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},7:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},8:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},9:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},10:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"alta"},11:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},12:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},13:{t:"Teoria dos Grafos",a:"Matem\u00e1tica",c:"baixa"},14:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"baixa"},15:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},16:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},17:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"alta"},18:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},19:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},20:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},21:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},22:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},23:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},24:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"baixa"},25:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},26:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},27:{t:"Teoria dos Grafos",a:"Fundamentos",c:"baixa"},28:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},29:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},30:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},31:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"alta"},32:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},33:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"alta"},34:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},35:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},36:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},37:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},38:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},39:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},40:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},41:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},42:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},43:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},44:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},45:{t:"Estruturas de Dados",a:"Fundamentos",c:"baixa"},46:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},47:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},48:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},49:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},50:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},51:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},52:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"baixa"},53:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},54:{t:"Compiladores",a:"Tecnologia",c:"alta"},55:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"baixa"},56:{t:"Compiladores",a:"Tecnologia",c:"baixa"},57:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},58:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},59:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"},60:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},61:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},62:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},63:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},64:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},65:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},66:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},67:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},68:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"alta"},69:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},70:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"alta"}},
+  2012:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},2:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},3:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},4:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},5:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},6:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},7:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},8:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},9:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},10:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},11:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},12:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},13:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},14:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"alta"},15:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},16:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"alta"},17:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},18:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},19:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"alta"},20:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},21:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},22:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},23:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},24:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},25:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},26:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"baixa"},27:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},28:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},29:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},30:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},31:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},32:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},33:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},34:{t:"Banco de Dados",a:"Fundamentos",c:"alta"},35:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},36:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},37:{t:"Estruturas de Dados",a:"Fundamentos",c:"baixa"},38:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},39:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},40:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},41:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},42:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"baixa"},43:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},44:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},45:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"baixa"},46:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},47:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},48:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},49:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},50:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},51:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},52:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},53:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},54:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},55:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},56:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},57:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},58:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},59:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},60:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},61:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"},62:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},63:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"alta"},64:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},65:{t:"Compiladores",a:"Tecnologia",c:"baixa"},66:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},67:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},68:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},69:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},70:{t:"Compiladores",a:"Tecnologia",c:"alta"}},
+  2013:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},2:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},3:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},4:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},5:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},6:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},7:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},8:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},9:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},10:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"alta"},11:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},12:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},13:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},14:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},15:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},16:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},17:{t:"Combinat\u00f3ria",a:"Matem\u00e1tica",c:"baixa"},18:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},19:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},20:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"baixa"},21:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},22:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},23:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},24:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},25:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},26:{t:"Geometria Anal\u00edtica",a:"Fundamentos",c:"alta"},27:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},28:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},29:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},30:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},31:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},32:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},33:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},34:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},35:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},36:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},37:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},38:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},39:{t:"Estruturas de Dados",a:"Fundamentos",c:"baixa"},40:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},41:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},42:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},43:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},44:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},45:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},46:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},47:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},48:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},49:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},50:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},51:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},52:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},53:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},54:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},55:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},56:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},57:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},58:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"baixa"},59:{t:"Processamento de Imagens",a:"Tecnologia",c:"alta"},60:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},61:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},62:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},63:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},64:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"},65:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},66:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},67:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},68:{t:"Compiladores",a:"Tecnologia",c:"alta"},69:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},70:{t:"Compiladores",a:"Tecnologia",c:"baixa"}},
+  2014:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},2:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},3:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},4:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},5:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},6:{t:"\u00c1lgebra",a:"Matem\u00e1tica",c:"baixa"},7:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},8:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},9:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},10:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"alta"},11:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},12:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},13:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},14:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},15:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},16:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},17:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},18:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},19:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},20:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"alta"},21:{t:"Banco de Dados",a:"Fundamentos",c:"baixa"},22:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},23:{t:"Estruturas de Dados",a:"Fundamentos",c:"baixa"},24:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},25:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},26:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},27:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},28:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},29:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},30:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},31:{t:"\u00c1lgebra Linear",a:"Fundamentos",c:"baixa"},32:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},33:{t:"\u00c1lgebra Linear",a:"Fundamentos",c:"baixa"},34:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},35:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},36:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},37:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},38:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},39:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},40:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},41:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},42:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"alta"},43:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"alta"},44:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},45:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},46:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},47:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"alta"},48:{t:"Estruturas de Dados",a:"Fundamentos",c:"baixa"},49:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},50:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},51:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},52:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},53:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},54:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},55:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},56:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},57:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},58:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},59:{t:"Processamento de Imagens",a:"Tecnologia",c:"baixa"},60:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},61:{t:"Processamento de Imagens",a:"Tecnologia",c:"alta"},62:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"alta"},63:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},64:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},65:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},66:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},67:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"alta"},68:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},69:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},70:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"}},
+  2015:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},2:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},3:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},4:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},5:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"alta"},6:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},7:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},8:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},9:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},10:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},11:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"baixa"},12:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},13:{t:"Combinat\u00f3ria",a:"Matem\u00e1tica",c:"alta"},14:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},15:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},16:{t:"\u00c1lgebra",a:"Matem\u00e1tica",c:"alta"},17:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},18:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},19:{t:"\u00c1lgebra",a:"Matem\u00e1tica",c:"baixa"},20:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},21:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},22:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},23:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},24:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},25:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},26:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},27:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},28:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},29:{t:"Teoria dos Grafos",a:"Fundamentos",c:"baixa"},30:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},31:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},32:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},33:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},34:{t:"Teoria dos Grafos",a:"Fundamentos",c:"baixa"},35:{t:"Estruturas de Dados",a:"Fundamentos",c:"baixa"},36:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},37:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},38:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},39:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},40:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},41:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},42:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"alta"},43:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},44:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},45:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},46:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},47:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},48:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},49:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},50:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},51:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},52:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},53:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},54:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},55:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},56:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},57:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},58:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},59:{t:"Processamento de Imagens",a:"Tecnologia",c:"baixa"},60:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},61:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"baixa"},62:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},63:{t:"Compiladores",a:"Tecnologia",c:"alta"},64:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"alta"},65:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},66:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},67:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},68:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},69:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},70:{t:"Banco de Dados",a:"Tecnologia",c:"alta"}},
+  2016:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},2:{t:"Estruturas de Dados",a:"Matem\u00e1tica",c:"alta"},3:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},4:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},5:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},6:{t:"\u00c1lgebra",a:"Matem\u00e1tica",c:"alta"},7:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},8:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},9:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},10:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},11:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"alta"},12:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},13:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"alta"},14:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},15:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},16:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},17:{t:"Combinat\u00f3ria",a:"Matem\u00e1tica",c:"baixa"},18:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"baixa"},19:{t:"Complexidade de Algoritmos",a:"Matem\u00e1tica",c:"baixa"},20:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},21:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"baixa"},22:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},24:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},25:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},26:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},27:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},28:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},29:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},31:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},32:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},33:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},34:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},35:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"baixa"},36:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},37:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},38:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},39:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},40:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},41:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},42:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"baixa"},43:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},44:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},45:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},46:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},47:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},48:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},49:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},50:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},51:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},52:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},53:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},54:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},55:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},56:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},57:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},58:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},59:{t:"Processamento de Imagens",a:"Tecnologia",c:"alta"},60:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},62:{t:"C\u00e1lculo",a:"Tecnologia",c:"baixa"},63:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},64:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},65:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},66:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},67:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},68:{t:"Compiladores",a:"Tecnologia",c:"alta"},69:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},70:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"}},
+  2017:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},2:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},3:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},4:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},5:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},6:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"alta"},7:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},8:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},9:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},10:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},11:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"alta"},12:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"baixa"},13:{t:"Combinat\u00f3ria",a:"Matem\u00e1tica",c:"baixa"},14:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},15:{t:"Arquitetura de Computadores",a:"Matem\u00e1tica",c:"baixa"},16:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},17:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},18:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},19:{t:"Combinat\u00f3ria",a:"Matem\u00e1tica",c:"baixa"},20:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"alta"},21:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},22:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},23:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},24:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},25:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"baixa"},26:{t:"Estruturas de Dados",a:"Fundamentos",c:"baixa"},27:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},28:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},29:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},30:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},31:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},32:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},33:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},34:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},35:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},36:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},37:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},38:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},39:{t:"\u00c1lgebra Linear",a:"Fundamentos",c:"alta"},40:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},41:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},42:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"alta"},43:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},44:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},45:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},46:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},47:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},48:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"baixa"},49:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},50:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},51:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},52:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},53:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},54:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},55:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},56:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},57:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},58:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},59:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},60:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},61:{t:"Processamento de Imagens",a:"Tecnologia",c:"alta"},62:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"},63:{t:"Compiladores",a:"Tecnologia",c:"alta"},64:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},65:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},66:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},67:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"},68:{t:"Compiladores",a:"Tecnologia",c:"alta"},69:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},70:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"}},
+  2018:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},2:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},3:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},4:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},5:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},6:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"baixa"},7:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},8:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},9:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},10:{t:"Teoria dos Grafos",a:"Matem\u00e1tica",c:"baixa"},11:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"alta"},12:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"baixa"},13:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},14:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},15:{t:"Arquitetura de Computadores",a:"Matem\u00e1tica",c:"alta"},16:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},17:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},18:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"alta"},19:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},20:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"alta"},21:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},22:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},23:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},24:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},25:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},26:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},27:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},28:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},29:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},30:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},31:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},32:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},33:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},34:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},35:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},36:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},37:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},38:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},39:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"baixa"},40:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},41:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},43:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},44:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},45:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},46:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},47:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},48:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},49:{t:"\u00c1lgebra Linear",a:"Fundamentos",c:"alta"},50:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},51:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},52:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},53:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},54:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},55:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},56:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},57:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"baixa"},58:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},59:{t:"Processamento de Imagens",a:"Tecnologia",c:"alta"},60:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},61:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"baixa"},62:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},63:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},64:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},65:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},66:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},67:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"alta"},68:{t:"Compiladores",a:"Tecnologia",c:"alta"},69:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},70:{t:"Banco de Dados",a:"Tecnologia",c:"alta"}},
+  2019:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},2:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"alta"},3:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},4:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},5:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},6:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"baixa"},7:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},8:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},9:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},10:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"baixa"},11:{t:"Arquitetura de Computadores",a:"Matem\u00e1tica",c:"alta"},12:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},13:{t:"Combinat\u00f3ria",a:"Matem\u00e1tica",c:"alta"},14:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},15:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},16:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},17:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},18:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"alta"},19:{t:"Combinat\u00f3ria",a:"Matem\u00e1tica",c:"alta"},20:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},21:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},22:{t:"Geometria Anal\u00edtica",a:"Fundamentos",c:"baixa"},23:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},24:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},25:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},26:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},27:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},28:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},29:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"baixa"},30:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},31:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},32:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},33:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},34:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},35:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},36:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},37:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},38:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},39:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},40:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},41:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},42:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"baixa"},43:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},44:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},45:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},46:{t:"\u00c1lgebra Linear",a:"Fundamentos",c:"baixa"},47:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},48:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},49:{t:"Teoria dos Grafos",a:"Fundamentos",c:"baixa"},50:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},51:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},52:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},53:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},54:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},55:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},56:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},57:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},58:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"baixa"},59:{t:"Processamento de Imagens",a:"Tecnologia",c:"alta"},60:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},61:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},62:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"},63:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},64:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},65:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},66:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},67:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"},68:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},69:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"},70:{t:"Banco de Dados",a:"Tecnologia",c:"alta"}},
+  2022:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},2:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},3:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},4:{t:"Banco de Dados",a:"Matem\u00e1tica",c:"baixa"},5:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"baixa"},6:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},7:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},8:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},9:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},10:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},11:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"baixa"},12:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"alta"},13:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},14:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},15:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"alta"},16:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},17:{t:"Teoria dos Grafos",a:"Matem\u00e1tica",c:"alta"},18:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},19:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},20:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"alta"},21:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},22:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},24:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},25:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},26:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},27:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},28:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},29:{t:"\u00c1lgebra Linear",a:"Fundamentos",c:"baixa"},30:{t:"Redes de Computadores",a:"Fundamentos",c:"alta"},31:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},32:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},33:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},34:{t:"Estruturas de Dados",a:"Fundamentos",c:"baixa"},35:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},36:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},38:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},39:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"baixa"},40:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},41:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},42:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"alta"},43:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},44:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},45:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},46:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},47:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},48:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},49:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},50:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},51:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},52:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},53:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},54:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},55:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},56:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},57:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},58:{t:"\u00c1lgebra Linear",a:"Tecnologia",c:"alta"},59:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},60:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},61:{t:"Processamento de Imagens",a:"Tecnologia",c:"baixa"},62:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"},63:{t:"Compiladores",a:"Tecnologia",c:"baixa"},64:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},65:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},66:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},67:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},68:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},69:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},70:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"}},
+  2023:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},2:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},3:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},4:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},5:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},7:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},8:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},9:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"baixa"},10:{t:"N\u00e3o classificado",a:"Matem\u00e1tica",c:"nenhuma"},11:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},12:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},13:{t:"C\u00e1lculo",a:"Matem\u00e1tica",c:"alta"},14:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"alta"},15:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},16:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},17:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},18:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},19:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},20:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},21:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},22:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},23:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},24:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},25:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},26:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},27:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},28:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},29:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},30:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},31:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},32:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},33:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},34:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},35:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},36:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},37:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},38:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},39:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},40:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},41:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},42:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},43:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},44:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},45:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},46:{t:"Estruturas de Dados",a:"Fundamentos",c:"baixa"},47:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},48:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},49:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},50:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},51:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},52:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},53:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},54:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},55:{t:"Compiladores",a:"Tecnologia",c:"alta"},56:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},57:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},58:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},59:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},60:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},61:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},62:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},63:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},64:{t:"Intelig\u00eancia Artificial",a:"Tecnologia",c:"alta"},65:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},66:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},67:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},68:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},69:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"},70:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"}},
+  2024:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},10:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},11:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},12:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"baixa"},13:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},14:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"alta"},15:{t:"Arquitetura de Computadores",a:"Matem\u00e1tica",c:"alta"},16:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},17:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},18:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},19:{t:"Sistemas Operacionais",a:"Matem\u00e1tica",c:"baixa"},20:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},21:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},22:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},23:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},24:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},25:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},26:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},27:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"baixa"},28:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},29:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},30:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},31:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},32:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"alta"},33:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},34:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},35:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},36:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"baixa"},37:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},38:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},39:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},40:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},41:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},42:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},43:{t:"Sistemas Operacionais",a:"Fundamentos",c:"baixa"},44:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},45:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},46:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},47:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},48:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},49:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},50:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},51:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},52:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},53:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},54:{t:"Compiladores",a:"Tecnologia",c:"alta"},55:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},56:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},57:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},58:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},59:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},60:{t:"Engenharia de Software",a:"Tecnologia",c:"alta"},61:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},62:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},63:{t:"Processamento de Imagens",a:"Tecnologia",c:"baixa"},64:{t:"Processamento de Imagens",a:"Tecnologia",c:"alta"},65:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},66:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},67:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},68:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"},69:{t:"Banco de Dados",a:"Tecnologia",c:"baixa"},70:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"}},
+  2025:{1:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},10:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},11:{t:"Geometria Anal\u00edtica",a:"Matem\u00e1tica",c:"alta"},12:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},13:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},14:{t:"L\u00f3gica / \u00c1lgebra Booleana",a:"Matem\u00e1tica",c:"baixa"},15:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},16:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Matem\u00e1tica",c:"baixa"},17:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"alta"},18:{t:"Conjuntos / Numera\u00e7\u00e3o",a:"Matem\u00e1tica",c:"alta"},19:{t:"Probabilidade e Estat\u00edstica",a:"Matem\u00e1tica",c:"alta"},20:{t:"\u00c1lgebra Linear",a:"Matem\u00e1tica",c:"baixa"},21:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},22:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"alta"},24:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},25:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},26:{t:"Estruturas de Dados",a:"Fundamentos",c:"alta"},27:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},28:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"baixa"},29:{t:"Arquitetura de Computadores",a:"Fundamentos",c:"alta"},30:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},31:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},32:{t:"L\u00f3gica Digital / Circuitos",a:"Fundamentos",c:"alta"},33:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},34:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},35:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"alta"},36:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"baixa"},37:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},38:{t:"Linguagens Formais / Aut\u00f4matos",a:"Fundamentos",c:"alta"},39:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},41:{t:"Estruturas de Dados",a:"Fundamentos",c:"baixa"},42:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},43:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},44:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},45:{t:"Linguagens de Programa\u00e7\u00e3o",a:"Fundamentos",c:"baixa"},46:{t:"Sistemas Operacionais",a:"Fundamentos",c:"alta"},47:{t:"Complexidade de Algoritmos",a:"Fundamentos",c:"baixa"},48:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},49:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},50:{t:"Teoria dos Grafos",a:"Fundamentos",c:"alta"},51:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},52:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},53:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},54:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},55:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},56:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},57:{t:"Computa\u00e7\u00e3o Gr\u00e1fica",a:"Tecnologia",c:"alta"},58:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},59:{t:"Engenharia de Software",a:"Tecnologia",c:"baixa"},60:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},61:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},62:{t:"Banco de Dados",a:"Tecnologia",c:"alta"},63:{t:"Processamento de Imagens",a:"Tecnologia",c:"baixa"},64:{t:"Processamento de Imagens",a:"Tecnologia",c:"alta"},65:{t:"Redes de Computadores",a:"Tecnologia",c:"alta"},66:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},67:{t:"Redes de Computadores",a:"Tecnologia",c:"baixa"},68:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"alta"},69:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"},70:{t:"Sistemas Distribu\u00eddos",a:"Tecnologia",c:"baixa"}},
+};
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@11/marked.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css">
@@ -980,6 +1017,7 @@ const DEFAULT_DATA = {
   matrizGaps: {},
   checklist: {},
   erros: [],
+  sessoes: [],
   formulas: { matematica: '', fundamentos: '', tecnologia: '' },
   notas: [],
   filtroData: { inicio: 2018, fim: 2025 },
@@ -994,7 +1032,9 @@ function loadData() {
     if (raw) {
       const parsed = JSON.parse(raw);
       // Garante que tem todos os campos
-      return { ...DEFAULT_DATA, ...parsed };
+      const merged = { ...DEFAULT_DATA, ...parsed };
+      if (!Array.isArray(merged.sessoes)) merged.sessoes = [];
+      return merged;
     }
   } catch(e) { console.warn('Erro ao carregar dados:', e); }
   return JSON.parse(JSON.stringify(DEFAULT_DATA));
@@ -1041,11 +1081,11 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById(`pane-${tab}`).classList.add('active');
     activeTab = tab;
     localStorage.setItem('poscomp_tab', tab);
-    if (tab === 'estatisticas') renderizarEstatisticas();
-    if (tab === 'gaps') renderizarGaps();
-    if (tab === 'erros') prepararFormErros();
-    if (tab === 'checklist') renderizarChecklist();
-    if (tab === 'formulas') renderizarNotas();
+    if (tab === 'estatisticas') { try { renderizarEstatisticas(); } catch(e) { console.warn(e); } }
+    if (tab === 'gaps') { try { renderizarGaps(); } catch(e) { console.warn(e); } }
+    if (tab === 'erros') { try { renderizarSessoes(); } catch(e) { console.warn(e); } }
+    if (tab === 'checklist') { try { renderizarChecklist(); } catch(e) { console.warn(e); } }
+    if (tab === 'formulas') { try { renderizarNotas(); } catch(e) { console.warn(e); } }
   });
 });
 
@@ -1295,21 +1335,26 @@ function gapHeatColor(val) {
 }
 
 function renderizarScatterGaps() {
-  if (!window._estatData) return;
+  if (!window._estatData || data.sessoes.length === 0) return;
   const { todosTopicos } = window._estatData;
   const freqMap = {};
   todosTopicos.forEach(t => { freqMap[t.topico] = t.media_por_prova; });
 
+  // Calculate per-topic stats from sessoes
+  const topicoStats = {};
+  TOPICOS_GAPS.forEach(({topico}) => { topicoStats[topico] = { total: 0, acertos: 0 }; });
+  data.sessoes.forEach(s => {
+    s.questoes.forEach(q => {
+      const t = q.topico || 'Não classificado';
+      if (topicoStats[t]) { topicoStats[t].total++; if (q.acertou === true) topicoStats[t].acertos++; }
+    });
+  });
+
   const pontos = [];
   TOPICOS_GAPS.forEach(({topico, area}) => {
-    const gap = data.matrizGaps[topico] || {};
-    let totalPct = 0, count = 0;
-    data.simulados.forEach(s => {
-      const v = gap[s.id + '_pct'];
-      if (v !== null && v !== undefined && v !== '' && !isNaN(v)) { totalPct += Number(v); count++; }
-    });
-    if (count > 0) {
-      const avgPct = totalPct / count;
+    const stats = topicoStats[topico] || { total: 0, acertos: 0 };
+    if (stats.total > 0) {
+      const avgPct = stats.total > 0 ? Math.round(stats.acertos / stats.total * 100) : 0;
       const freq = freqMap[topico] || 0;
       pontos.push({ topico, area, freq, pct: avgPct, r: freq * 4 + 4 });
     }
@@ -1603,91 +1648,437 @@ function toggleChecklist(semana, index, done) {
 }
 
 // =============================================================
-// CLASSIFICAÇÃO DE ERROS
+// SESSÕES DE ESTUDO (substitui Classificação de Erros)
 // =============================================================
-function prepararFormErros() {
-  const sel = document.getElementById('err-simulado');
-  sel.innerHTML = data.simulados.map(s => `<option value="${s.id}">${esc(s.nome)}</option>`).join('');
+let sessaoAtiva = null; // { id, tipo, nome, ano, data, questoes: [] }
+let questaoSelecionada = null;
 
-  const selT = document.getElementById('err-topico');
-  selT.innerHTML = TOPICOS_GAPS.map(t => `<option value="${esc(t.topico)}">${esc(t.topico)}</option>`).join('');
+function migrarErrosAntigos() {
+  if (data.erros && data.erros.length > 0 && data.sessoes.length === 0) {
+    const grupos = {};
+    data.erros.forEach(e => {
+      const key = e.simuladoId || 'avulso';
+      if (!grupos[key]) grupos[key] = { nome: 'Migrado: ' + (e.simuladoId || 'Avulso'), tipo: 'lista', questoes: [] };
+      grupos[key].questoes.push({
+        questao: e.questao, topico: e.topico || 'Não classificado',
+        anoRef: null, acertou: false, motivo: (e.tipo || '') + (e.descricao ? ' — ' + e.descricao : ''),
+      });
+    });
+    Object.values(grupos).forEach(g => {
+      g.id = uid(); g.ano = null; g.data = new Date().toISOString();
+      data.sessoes.push(g);
+    });
+    data.erros = [];
+    saveData();
+  }
 }
 
-function adicionarErro() {
-  const erro = {
-    id: uid(),
-    simuladoId: document.getElementById('err-simulado').value,
-    questao: parseInt(document.getElementById('err-questao').value) || 0,
-    topico: document.getElementById('err-topico').value,
-    tipo: document.getElementById('err-tipo').value,
-    descricao: document.getElementById('err-desc').value,
-    data: new Date().toISOString(),
-  };
+function novaSessao(tipo) {
+  migrarErrosAntigos();
+  sessaoAtiva = { id: uid(), tipo, nome: '', ano: null, data: new Date().toISOString().slice(0,10), questoes: [] };
+  questaoSelecionada = null;
+  const form = document.getElementById('sessao-form');
+  form.style.display = 'block';
+  const gridC = document.getElementById('sessao-grid-container');
+  gridC.style.display = 'none';
 
-  if (!erro.questao) { toast('Informe o número da questão.', 'error'); return; }
+  if (tipo === 'prova') {
+    const anos = Object.keys(QT).sort().reverse();
+    form.innerHTML = `
+      <div class="form-group"><label>Nome</label><input type="text" id="ss-nome" placeholder="Ex: Simulado 2024" oninput="sessaoAtiva.nome=this.value"></div>
+      <div class="form-group"><label>Ano da prova</label><select id="ss-ano" onchange="gerarGradeProva(this.value)"><option value="">Selecione...</option>
+        ${anos.map(a => `<option value="${a}">${a}</option>`).join('')}</select></div>
+      <p style="font-size:0.75rem;color:var(--muted);">Selecione o ano para carregar a grade de 70 questões com os tópicos mapeados.</p>`;
+  } else {
+    form.innerHTML = `
+      <div class="form-group"><label>Nome</label><input type="text" id="ss-nome" placeholder="Ex: Geometria Analítica" oninput="sessaoAtiva.nome=this.value"></div>
+      <div class="form-group"><label>Ano da prova + Questão</label>
+        <div style="display:flex;gap:0.5rem;">
+          <select id="ss-ano-ref" style="width:auto;"><option value="">Ano</option>
+            ${Object.keys(QT).sort().reverse().map(a => `<option value="${a}">${a}</option>`).join('')}</select>
+          <input type="number" id="ss-q-ref" min="1" max="70" placeholder="Questão #" style="width:100px;">
+          <button class="btn btn-sm" onclick="adicionarQuestaoLista()">+ Adicionar</button>
+        </div>
+      </div>
+      <div id="ss-lista-preview" style="font-size:0.8rem;margin-top:0.5rem;"></div>
+      <p style="font-size:0.75rem;color:var(--muted);margin-top:0.5rem;">Adicione todas as questões antes de começar a marcar acertos/erros.</p>
+      <button class="btn btn-sm" onclick="iniciarLista()">✅ Começar lista</button>`;
+  }
+}
 
-  data.erros.push(erro);
+function gerarGradeProva(ano) {
+  if (!ano || !QT[ano]) return;
+  sessaoAtiva.ano = ano;
+  sessaoAtiva.nome = document.getElementById('ss-nome').value || ('Prova ' + ano);
+  sessaoAtiva.questoes = [];
+  for (let q = 1; q <= 70; q++) {
+    const info = QT[ano][q] || { t: 'Não classificado', a: q <= 20 ? 'Matemática' : q <= 50 ? 'Fundamentos' : 'Tecnologia' };
+    sessaoAtiva.questoes.push({ questao: q, topico: info.t, area: info.a, acertou: null, motivo: '', anoRef: null });
+  }
+  document.getElementById('sessao-form').style.display = 'none';
+  renderizarGrade();
+}
+
+function adicionarQuestaoLista() {
+  const anoEl = document.getElementById('ss-ano-ref');
+  const qEl = document.getElementById('ss-q-ref');
+  const ano = anoEl.value;
+  const q = parseInt(qEl.value);
+  if (!ano || !q || q < 1 || q > 70) { toast('Selecione ano e número da questão.', 'error'); return; }
+
+  const info = QT[ano] && QT[ano][q] ? QT[ano][q] : { t: 'Não classificado' };
+  const jaExiste = sessaoAtiva.questoes.find(x => x.questao === q && x.anoRef === ano);
+  if (!jaExiste) {
+    sessaoAtiva.questoes.push({ questao: q, topico: info.t, area: info.a || 'Tecnologia', acertou: null, motivo: '', anoRef: ano });
+  }
+  qEl.value = '';
+  renderizarListaPreview();
+}
+
+function renderizarListaPreview() {
+  const div = document.getElementById('ss-lista-preview');
+  if (!div) return;
+  div.innerHTML = sessaoAtiva.questoes.map(q => `
+    <span style="display:inline-block;background:rgba(255,255,255,0.05);padding:0.15rem 0.4rem;border-radius:4px;margin:2px;">
+      ${q.anoRef} Q${q.questao} <small style="color:var(--muted);">${q.topico}</small>
+      <button class="btn btn-sm" onclick="removerQLista(${q.questao},'${q.anoRef}')" style="padding:0 3px;font-size:0.65rem;">×</button>
+    </span>
+  `).join(' ') || '<span style="color:var(--muted);">Nenhuma questão adicionada.</span>';
+}
+
+function removerQLista(q, anoRef) {
+  sessaoAtiva.questoes = sessaoAtiva.questoes.filter(x => !(x.questao === q && x.anoRef === anoRef));
+  renderizarListaPreview();
+}
+
+function iniciarLista() {
+  if (sessaoAtiva.questoes.length === 0) { toast('Adicione ao menos uma questão.', 'error'); return; }
+  sessaoAtiva.nome = document.getElementById('ss-nome').value || 'Lista';
+  document.getElementById('sessao-form').style.display = 'none';
+  renderizarGrade();
+}
+
+function renderizarGrade() {
+  const container = document.getElementById('sessao-grid-container');
+  const grid = document.getElementById('sessao-grid');
+  const title = document.getElementById('sessao-grid-title');
+  container.style.display = 'block';
+  questaoSelecionada = null;
+  document.getElementById('sessao-detail').style.display = 'none';
+
+  title.textContent = sessaoAtiva.nome + (sessaoAtiva.ano ? ' (' + sessaoAtiva.ano + ')' : '');
+
+  // Se for prova, organiza por área
+  const areas = { Matemática: [1,20], Fundamentos: [21,50], Tecnologia: [51,70] };
+  const areaColors = { Matemática: 'var(--blue)', Fundamentos: 'var(--purple)', Tecnologia: 'var(--cyan)' };
+
+  let html = '';
+  if (sessaoAtiva.tipo === 'prova') {
+    Object.entries(areas).forEach(([area, [ini, fim]]) => {
+      const qs = sessaoAtiva.questoes.filter(q => q.questao >= ini && q.questao <= fim);
+      html += `<div class="q-area-label" style="color:${areaColors[area]};">${area} (Q${ini}-${fim})</div>`;
+      html += '<div class="q-grid">';
+      qs.forEach(q => {
+        const cls = q.acertou === true ? 'acertou' : q.acertou === false ? 'errou' : 'pulou';
+        const sel = questaoSelecionada && questaoSelecionada.questao === q.questao && questaoSelecionada.anoRef === q.anoRef ? ' selected' : '';
+        html += `<div class="q-cell ${cls}${sel}" onclick="selecionarQuestao(${q.questao},null)" title="${q.topico}">${q.questao}</div>`;
+      });
+      html += '</div>';
+    });
+  } else {
+    html += '<div class="q-grid" style="grid-template-columns:repeat(auto-fill,minmax(36px,1fr));">';
+    sessaoAtiva.questoes.sort((a,b) => (a.anoRef||'').localeCompare(b.anoRef||'') || a.questao - b.questao).forEach((q, i) => {
+      const cls = q.acertou === true ? 'acertou' : q.acertou === false ? 'errou' : 'pulou';
+      const sel = questaoSelecionada && questaoSelecionada === sessaoAtiva.questoes[i] ? ' selected' : '';
+      html += `<div class="q-cell ${cls}${sel}" onclick="selecionarQuestaoIdx(${i})" title="${q.anoRef||''} Q${q.questao}: ${q.topico}">${q.anoRef?q.anoRef.slice(2):''}Q${q.questao}</div>`;
+    });
+    html += '</div>';
+  }
+
+  // Add question area for lista
+  if (sessaoAtiva.tipo === 'lista') {
+    const addDiv = document.getElementById('sessao-lista-add');
+    addDiv.style.display = 'block';
+    const anos = Object.keys(QT).sort().reverse();
+    addDiv.innerHTML = `
+      <div style="display:flex;gap:0.35rem;align-items:center;flex-wrap:wrap;">
+        <strong style="font-size:0.8rem;">+ Questão:</strong>
+        <select id="ss-ano-ref2" style="width:auto;"><option value="">Ano</option>${anos.map(a => `<option value="${a}">${a}</option>`)}</select>
+        <input type="number" id="ss-q-ref2" min="1" max="70" placeholder="Q#" style="width:60px;">
+        <button class="btn btn-sm" onclick="addQuestaoGrid()">Adicionar</button>
+      </div>`;
+  } else {
+    document.getElementById('sessao-lista-add').style.display = 'none';
+  }
+
+  grid.innerHTML = html;
+  atualizarStatsSessao();
+}
+
+function addQuestaoGrid() {
+  const ano = document.getElementById('ss-ano-ref2').value;
+  const q = parseInt(document.getElementById('ss-q-ref2').value);
+  if (!ano || !q || q < 1 || q > 70) { toast('Selecione ano e número.', 'error'); return; }
+  const info = QT[ano] && QT[ano][q] ? QT[ano][q] : { t: 'Não classificado' };
+  const jaExiste = sessaoAtiva.questoes.find(x => x.questao === q && x.anoRef === ano);
+  if (jaExiste) { toast('Questão já adicionada.', 'error'); return; }
+  sessaoAtiva.questoes.push({ questao: q, topico: info.t, area: info.a || 'Tecnologia', acertou: null, motivo: '', anoRef: ano });
+  document.getElementById('ss-q-ref2').value = '';
+  renderizarGrade();
+}
+
+function selecionarQuestao(qNum, anoRef) {
+  const q = sessaoAtiva.questoes.find(x => x.questao === qNum && (anoRef === null || x.anoRef === anoRef));
+  if (!q) return;
+  questaoSelecionada = q;
+  renderizarGrade();
+  mostrarPopoverQuestao(q);
+}
+
+function selecionarQuestaoIdx(idx) {
+  const q = sessaoAtiva.questoes[idx];
+  if (!q) return;
+  questaoSelecionada = q;
+  renderizarGrade();
+  mostrarPopoverQuestao(q);
+}
+
+function marcarQuestao(acertou) {
+  if (!questaoSelecionada) return;
+  questaoSelecionada.acertou = acertou;
+  if (acertou !== false) { questaoSelecionada.motivo = ''; }
+  const errDiv = document.getElementById('popover-tipo-erro');
+  if (errDiv) errDiv.style.display = acertou === false ? 'block' : 'none';
+  atualizarStatsSessao();
+  renderizarGrade();
+  // Não fecha popover se errou (usuário precisa selecionar o tipo)
+  if (acertou !== false) fecharPopover();
+}
+
+function mostrarDetalheQuestao(q) { mostrarPopoverQuestao(q); }
+
+function fecharPopover() {
+  document.getElementById('popover-overlay').style.display = 'none';
+  document.getElementById('popover-questao').style.display = 'none';
+}
+
+function mostrarPopoverQuestao(q) {
+  questaoSelecionada = q;
+  const popover = document.getElementById('popover-questao');
+  const overlay = document.getElementById('popover-overlay');
+  const titulo = document.getElementById('popover-titulo');
+  const errDiv = document.getElementById('popover-tipo-erro');
+  const motivoSel = document.getElementById('popover-motivo');
+  const topicoInp = document.getElementById('popover-topico');
+
+  // Título
+  const anoLabel = q.anoRef ? ' (' + q.anoRef + ' Q' + q.questao + ')' : ' (Q' + q.questao + ')';
+  titulo.textContent = q.topico + anoLabel;
+
+  // Esconde tipo de erro inicialmente, limpa selects
+  if (errDiv) errDiv.style.display = 'none';
+  if (motivoSel) motivoSel.value = q.motivo || '';
+  if (topicoInp) topicoInp.value = '';
+
+  // Posiciona e mostra
+  overlay.style.display = 'block';
+  popover.style.display = 'block';
+  popover.style.top = '50%';
+  popover.style.left = '50%';
+  popover.style.transform = 'translate(-50%, -50%)';
+}
+
+function atualizarStatsSessao() {
+  const total = sessaoAtiva.questoes.length;
+  const acertos = sessaoAtiva.questoes.filter(q => q.acertou === true).length;
+  const erros = sessaoAtiva.questoes.filter(q => q.acertou === false).length;
+  const pct = total > 0 ? Math.round(acertos / total * 100) : 0;
+  document.getElementById('sessao-stats').innerHTML = `${acertos}✓ / ${erros}✗ / ${total - acertos - erros}— = <strong>${pct}%</strong>`;
+}
+
+function cancelarSessao() {
+  if (sessaoAtiva.questoes.some(q => q.acertou !== null) && !confirm('Descartar esta sessão?')) return;
+  sessaoAtiva = null;
+  questaoSelecionada = null;
+  document.getElementById('sessao-form').style.display = 'none';
+  document.getElementById('sessao-grid-container').style.display = 'none';
+}
+
+function salvarSessao() {
+  if (!sessaoAtiva || sessaoAtiva.questoes.length === 0) { toast('Nenhuma questão na sessão.', 'error'); return; }
+  const responded = sessaoAtiva.questoes.filter(q => q.acertou !== null).length;
+  if (responded === 0 && !confirm('Nenhuma questão respondida. Salvar mesmo assim?')) return;
+
+  // Check if editing existing
+  const idx = data.sessoes.findIndex(s => s.id === sessaoAtiva.id);
+  if (idx >= 0) data.sessoes[idx] = { ...sessaoAtiva };
+  else data.sessoes.push({ ...sessaoAtiva });
+
+  sessaoAtiva = null;
+  questaoSelecionada = null;
+  document.getElementById('sessao-form').style.display = 'none';
+  document.getElementById('sessao-grid-container').style.display = 'none';
+  document.getElementById('sessao-lista-add').style.display = 'none';
   saveData();
-  document.getElementById('err-questao').value = '';
-  document.getElementById('err-desc').value = '';
-  renderizarErros();
-  toast('Erro registrado!');
+  renderizarSessoes();
+  toast('Sessão salva! 💾');
   scheduleSync();
 }
 
-function removerErro(id) {
-  data.erros = data.erros.filter(e => e.id !== id);
+function editarSessao(id) {
+  const s = data.sessoes.find(s => s.id === id);
+  if (!s) return;
+  sessaoAtiva = JSON.parse(JSON.stringify(s));
+  questaoSelecionada = null;
+  document.getElementById('sessao-form').style.display = 'none';
+  renderizarGrade();
+  document.getElementById('sessao-grid-title').textContent = sessaoAtiva.nome + ' (editando)';
+}
+
+function removerSessao(id) {
+  if (!confirm('Remover esta sessão?')) return;
+  data.sessoes = data.sessoes.filter(s => s.id !== id);
   saveData();
-  renderizarErros();
+  renderizarSessoes();
   scheduleSync();
 }
 
-function renderizarErros() {
-  const container = document.getElementById('erros-lista');
-  const filtro = document.getElementById('filtro-erro-simulado');
+function renderizarSessoes() {
+  migrarErrosAntigos();
+  const container = document.getElementById('sessoes-lista');
+  const recDiv = document.getElementById('sessoes-recomendacoes');
 
-  // Atualiza opções do filtro
-  const selectedValue = filtro ? filtro.value : '';
-  if (filtro) {
-    filtro.innerHTML = '<option value="">Todos os simulados</option>' +
-      data.simulados.map(s => `<option value="${s.id}" ${s.id === selectedValue ? 'selected' : ''}>${esc(s.nome)}</option>`).join('');
-  }
-
-  // Filtra erros
-  let errosFiltrados = data.erros;
-  if (filtro && filtro.value) {
-    errosFiltrados = data.erros.filter(e => e.simuladoId === filtro.value);
-  }
-
-  if (errosFiltrados.length === 0) {
-    container.innerHTML = '<p style="color:var(--muted);">Nenhum erro registrado' +
-      (filtro && filtro.value ? ' neste simulado' : '') + '.</p>';
+  if (data.sessoes.length === 0) {
+    container.innerHTML = '<p style="color:var(--muted);">Nenhuma sessão registrada ainda. Clique em "Prova inteira" ou "Lista por tema" para começar.</p>';
+    recDiv.innerHTML = '';
     return;
   }
 
-  const simNome = (id) => {
-    const s = data.simulados.find(s => s.id === id);
-    return s ? s.nome : id;
-  };
+  container.innerHTML = data.sessoes.slice().reverse().map(s => {
+    const total = s.questoes.length;
+    const acertos = s.questoes.filter(q => q.acertou === true).length;
+    const erros = s.questoes.filter(q => q.acertou === false).length;
+    const pct = total > 0 ? Math.round(acertos / total * 100) : 0;
 
-  container.innerHTML = `
-    <table>
-      <thead><tr><th>Data</th><th>Sim.</th><th>Q#</th><th>Tópico</th><th>Tipo</th><th>Descrição</th><th></th></tr></thead>
-      <tbody>
-        ${errosFiltrados.map(e => `
-          <tr>
-            <td style="font-size:0.75rem;">${e.data ? e.data.slice(0,10) : ''}</td>
-            <td style="font-size:0.75rem;">${esc(simNome(e.simuladoId))}</td>
-            <td>Q${e.questao}</td>
-            <td style="font-size:0.75rem;">${esc(e.topico)}</td>
-            <td><span class="badge badge-y">${esc(e.tipo)}</span></td>
-            <td style="font-size:0.8rem;">${esc(e.descricao || '')}</td>
-            <td><button class="btn btn-sm btn-danger" onclick="removerErro('${e.id}')">🗑</button></td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>`;
+    // Por área
+    const porArea = {};
+    s.questoes.forEach(q => {
+      const area = q.area || (q.questao <= 20 ? 'Matemática' : q.questao <= 50 ? 'Fundamentos' : 'Tecnologia');
+      if (!porArea[area]) porArea[area] = { total: 0, acertos: 0 };
+      porArea[area].total++;
+      if (q.acertou === true) porArea[area].acertos++;
+    });
+
+    const areaBars = Object.entries(porArea).map(([a, d]) => {
+      const ap = d.total > 0 ? Math.round(d.acertos/d.total*100) : 0;
+      const color = a === 'Matemática' ? 'var(--blue)' : a === 'Fundamentos' ? 'var(--purple)' : 'var(--cyan)';
+      return `<span style="font-size:0.7rem;">${a.slice(0,3)}: ${ap}% <span class="mini-bar"><span class="mini-bar-seg mb-green" style="width:${ap}%;background:${color};"></span><span class="mini-bar-seg mb-red" style="width:${100-ap}%;"></span></span></span>`;
+    }).join(' ');
+
+    return `<div class="sessao-card" onclick="toggleSessaoCard(this, '${s.id}')">
+      <div class="sessao-summary">
+        <div>
+          <strong>${esc(s.nome)}</strong>
+          <span style="font-size:0.7rem;color:var(--muted);margin-left:0.5rem;">${s.data ? s.data.slice(0,10) : ''}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+          ${areaBars}
+          <span style="font-weight:600;min-width:35px;text-align:right;">${pct}%</span>
+        </div>
+      </div>
+      <div class="sessao-detail-expanded" style="display:none;margin-top:0.75rem;"></div>
+    </div>`;
+  }).join('');
+
+  renderizarRecomendacoes();
 }
+
+function toggleSessaoCard(card, id) {
+  const wasExpanded = card.classList.contains('expanded');
+  document.querySelectorAll('.sessao-card').forEach(c => { c.classList.remove('expanded'); c.querySelector('.sessao-detail-expanded').style.display = 'none'; });
+  if (!wasExpanded) {
+    card.classList.add('expanded');
+    const detailDiv = card.querySelector('.sessao-detail-expanded');
+    const s = data.sessoes.find(s => s.id === id);
+    if (s && detailDiv) {
+      const areaColors = { Matemática: 'var(--blue)', Fundamentos: 'var(--purple)', Tecnologia: 'var(--cyan)' };
+      const areas = { Matemática: [1,20], Fundamentos: [21,50], Tecnologia: [51,70] };
+      let gridHTML = s.tipo === 'prova' ? Object.entries(areas).map(([area, [ini, fim]]) => {
+        const qs = s.questoes.filter(q => q.questao >= ini && q.questao <= fim);
+        return `<div class="q-area-label" style="color:${areaColors[area]};">${area}</div><div class="q-grid">${
+          qs.map(q => {
+            const cls = q.acertou === true ? 'acertou' : q.acertou === false ? 'errou' : 'pulou';
+            return `<div class="q-cell ${cls}" title="${q.topico}">${q.questao}</div>`;
+          }).join('')
+        }</div>`;
+      }).join('') : `<div class="q-grid" style="grid-template-columns:repeat(auto-fill,minmax(36px,1fr));">${
+        s.questoes.sort((a,b) => (a.anoRef||'').localeCompare(b.anoRef||'')||a.questao-b.questao).map(q => {
+          const cls = q.acertou === true ? 'acertou' : q.acertou === false ? 'errou' : 'pulou';
+          return `<div class="q-cell ${cls}" title="${q.anoRef||''} Q${q.questao}: ${q.topico}">${q.anoRef?q.anoRef.slice(2):''}Q${q.questao}</div>`;
+        }).join('')
+      }</div>`;
+
+      detailDiv.innerHTML = gridHTML + `
+        <div style="margin-top:0.5rem;display:flex;gap:0.5rem;">
+          <button class="btn btn-sm" onclick="event.stopPropagation();editarSessao('${s.id}')">✏️ Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();removerSessao('${s.id}')">🗑 Remover</button>
+        </div>`;
+      detailDiv.style.display = 'block';
+    }
+  }
+}
+
+function renderizarRecomendacoes() {
+  const div = document.getElementById('sessoes-recomendacoes');
+  if (!div || data.sessoes.length === 0) return;
+
+  // Calcula stats por tópico a partir de todas as sessões
+  const topicoStats = {};
+  data.sessoes.forEach(s => {
+    s.questoes.forEach(q => {
+      const t = q.topico || 'Não classificado';
+      if (!topicoStats[t]) topicoStats[t] = { total: 0, acertos: 0, erros: 0 };
+      topicoStats[t].total++;
+      if (q.acertou === true) topicoStats[t].acertos++;
+      else if (q.acertou === false) topicoStats[t].erros++;
+    });
+  });
+
+  const urgentes = Object.entries(topicoStats)
+    .filter(([t, d]) => t !== 'Não classificado' && d.erros > 0)
+    .map(([t, d]) => ({ topico: t, ...d, pctErro: Math.round(d.erros/d.total*100), score: d.erros }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+
+  if (urgentes.length === 0) {
+    div.innerHTML = '';
+    return;
+  }
+
+  div.innerHTML = `<div class="section" style="margin-top:1rem;">
+    <h3>🎯 Recomendações de estudo</h3>
+    <p style="font-size:0.82rem;color:var(--muted);">Baseado nos seus resultados nas últimas sessões.</p>
+    <table>
+      <thead><tr><th>Tópico</th><th>Erros</th><th>Total</th><th>% Erro</th><th>Prioridade</th></tr></thead>
+      <tbody>
+        ${urgentes.map(u => {
+          const prio = u.pctErro > 50 ? '🔴 Alta' : u.pctErro > 25 ? '🟡 Média' : '🟢 Baixa';
+          return `<tr><td><strong>${esc(u.topico)}</strong></td><td>${u.erros}</td><td>${u.total}q</td><td>${u.pctErro}%</td><td>${prio}</td></tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function prepararFormErros() {
+  // Backwards compat — agora renderiza sessoes
+  renderizarSessoes();
+}
+
+// Old functions kept for backwards compat
+function adicionarErro() { toast('Use "Nova sessão" para registrar questões.', 'error'); }
+function renderizarErros() { renderizarSessoes(); }
+function removerErro(id) { data.erros = data.erros.filter(e => e.id !== id); saveData(); renderizarSessoes(); }
 
 // =============================================================
 // NOTAS (Markdown + LaTeX)
@@ -1846,10 +2237,10 @@ function baixarNotasPDF() {
 
   // Converte markdown para HTML e renderiza LaTeX inline (usando KaTeX se disponível)
   let html = `<html><head><meta charset="UTF-8">
-    <title>POSCOMP — Notas e Fórmulas</title>
+    <title>POSCOMP — Anotações</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css">
     <style>
-      body { font-family: -apple-system, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; line-height: 1.7; }
+      body { font-family: -apple-system, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; line-height: 1.9; font-size: 15px; }
       h1 { border-bottom: 2px solid #333; padding-bottom: 0.5rem; }
       h2 { color: #555; margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: 0.3rem; }
       h3 { color: #333; margin-top: 1.5rem; }
@@ -1864,7 +2255,7 @@ function baixarNotasPDF() {
       th { background: #f0f0f0; }
       @media print { body { margin: 0; } .nota { break-inside: avoid; } }
     </style></head><body>
-    <h1>📐 POSCOMP — Notas e Fórmulas</h1>
+    <h1>📐 POSCOMP — Anotações</h1>
     <p><em>Gerado em ${new Date().toLocaleDateString('pt-BR')}</em></p>`;
 
   const areaTitulos = { Matemática: '📊 Matemática', Fundamentos: '💻 Fundamentos', Tecnologia: '🔧 Tecnologia' };
@@ -1901,9 +2292,9 @@ function baixarNotasPDF() {
   const url = URL.createObjectURL(blob);
   const w = window.open(url, '_blank');
   if (w) {
-    w.onload = () => { w.print(); };
+    setTimeout(() => { try { w.print(); } catch(e) {} }, 1500);
   }
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
   toast('Abrindo para impressão. Salve como PDF no diálogo.');
 }
 
@@ -1976,7 +2367,7 @@ function renderizarEstatisticas() {
       data: {
         labels: top10.map(t => t.topico),
         datasets: [{
-          label: 'Total de questões',
+          label: 'Total de questões', barThickness: 18, maxBarThickness: 24,
           data: top10.map(t => t.total),
           backgroundColor: top10.map(t => areaColors[t.area] + '99'),
           borderColor: top10.map(t => areaColors[t.area]),
@@ -1991,7 +2382,7 @@ function renderizarEstatisticas() {
         plugins: { legend: { display: false } },
         scales: {
           x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
-          y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 11 } } }
+          y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 12 }, padding: 4 } }
         }
       }
     });
@@ -2554,15 +2945,54 @@ function importarDados() {
 // =============================================================
 // RENDERIZAÇÃO GLOBAL
 // =============================================================
+
+function renderizarCronograma() {
+  const container = document.getElementById('cronograma-container');
+  if (!container) return;
+
+  const semanaNomes = {
+    S1: { titulo: 'Semana 1 — Diagnóstico', datas: '21–26 Jul', obj: 'Saber exatamente onde você está.' },
+    S2: { titulo: 'Semana 2 — Fundamentos', datas: '27 Jul – 2 Ago', obj: 'Atacar a área de maior peso.' },
+    S3: { titulo: 'Semana 3 — Matemática + Tecnologia', datas: '3–9 Ago', obj: 'Cobrir as áreas que juntas valem mais da metade da prova.' },
+    S4: { titulo: 'Semana 4 — Fechando Lacunas', datas: '10–16 Ago', obj: 'Atacar o que ainda está frágil depois de 3 simulados.' },
+    S5: { titulo: 'Semana 5 — Revisão + Ritmo', datas: '17–23 Ago', obj: 'Consolidar, não aprender. Ritmo de prova > conteúdo novo.' },
+    'Véspera': { titulo: '🧘 Véspera', datas: '24–29 Ago', obj: 'Semana ZERO de estudo pesado. Só manutenção.' },
+    'Prova': null
+  };
+
+  let html = '<div class="weeks">';
+  Object.keys(CHECKLIST_TEMPLATE).forEach(semana => {
+    if (semana === 'Prova') return;
+    const info = semanaNomes[semana] || { titulo: semana, datas: '', obj: '' };
+    const tasks = CHECKLIST_TEMPLATE[semana] || [];
+    const isVespera = semana === 'Véspera';
+
+    html += `<div class="week"${isVespera?' style="margin-top:1rem;border:1px dashed var(--border);background:rgba(139,92,246,0.05);"':''}>
+      <div class="week-header"><h3>${info.titulo}</h3><span class="dates">${info.datas}</span></div>
+      <p class="objective">${info.obj}</p>
+      <ul class="tasks">`;
+
+    tasks.forEach(t => {
+      const dotClass = t.essencial ? 'dot-red' : 'dot-yellow';
+      html += `<li><span class="dot ${dotClass}"></span> ${t.essencial ? '<strong>' + esc(t.task) + '</strong>' : esc(t.task)}</li>`;
+    });
+
+    html += '</ul></div>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
 function renderizarTudo() {
-  renderizarSimulados();
-  atualizarStatsCards();
-  renderizarGaps();
-  renderizarChecklist();
-  renderizarErros();
-  prepararFormErros();
-  renderizarEstatisticas();
-  if (activeTab === 'formulas') renderizarNotas();
+  const safeRender = (fn, name) => { try { fn(); } catch(e) { console.warn('Erro ao renderizar', name, e); } };
+  safeRender(renderizarSimulados, 'simulados');
+  safeRender(renderizarCronograma, 'cronograma');
+  safeRender(atualizarStatsCards, 'statsCards');
+  safeRender(renderizarGaps, 'gaps');
+  safeRender(renderizarChecklist, 'checklist');
+  safeRender(renderizarSessoes, 'sessoes');
+  safeRender(renderizarEstatisticas, 'estatisticas');
+  if (activeTab === 'formulas') safeRender(renderizarNotas, 'notas');
   updateCountdown();
 }
 
