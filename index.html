@@ -556,7 +556,7 @@
 <nav class="tab-nav" id="tab-nav">
   <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
   <button class="tab-btn" data-tab="simulados">📝 Simulados</button>
-  <button class="tab-btn" data-tab="gaps">🎯 Matriz de Gaps</button>
+  <button class="tab-btn" data-tab="gaps">🩺 Diagnóstico</button>
   <button class="tab-btn" data-tab="checklist">✅ Checklist</button>
   <button class="tab-btn" data-tab="erros">📋 Sessões</button>
   <button class="tab-btn" data-tab="formulas">📝 Anotações</button>
@@ -716,28 +716,36 @@
 <!-- ================================================================ -->
 <div class="tab-pane" id="pane-gaps">
 <div class="section">
-  <h2>🎯 Matriz de Gaps por Tópico</h2>
-  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">
-    Preencha % de acerto para cada tópico em cada simulado. Ex: digite <code>67</code> para 67%.
-    <br>Prioridade automática: <span class="badge badge-r">M &lt;50%</span> <span class="badge badge-y">N 50-70%</span> <span class="badge badge-g">B &gt;70%</span>
-  </p>
+  <h2>📋 O que estudar agora</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem;">Ordenado por urgência: seus erros × peso histórico de cada tópico na prova.</p>
+  <div id="diag-urgencia"><p style="color:var(--muted);">Registre sessões na aba 📋 Sessões para ver o diagnóstico.</p></div>
+</div>
 
-  <div style="overflow-x:auto;">
-    <table id="gaps-table">
-      <thead id="gaps-thead"></thead>
-      <tbody id="gaps-tbody"></tbody>
-    </table>
-  </div>
-
-  <h3 style="margin-top:1.5rem;">📍 Onde focar</h3>
-  <p style="color:var(--muted);font-size:0.8rem;margin-bottom:0.5rem;">Eixo X = frequência na prova (questões/prova). Eixo Y = seu % de acerto. Quanto mais à direita e abaixo, mais urgente.</p>
+<div class="section">
+  <h2>🤔 Por que estou errando?</h2>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-    <div style="max-height:350px;"><canvas id="chart-scatter"></canvas></div>
-    <div>
-      <h4 style="font-size:0.85rem;margin:0 0 0.5rem;">📋 Ações sugeridas (ordem de prioridade)</h4>
-      <div id="gaps-acoes" style="font-size:0.8rem;color:var(--muted);">Preencha a matriz de gaps para ver sugestões.</div>
-    </div>
+    <div style="max-height:250px;"><canvas id="diag-pizza-erros"></canvas></div>
+    <div id="diag-tipos-erro"></div>
   </div>
+</div>
+
+<div class="section">
+  <h2>🔁 Revisar depois</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:0.75rem;">Questões que você acertou mas quer revisar (marcou "Quero revisar depois", "Acertei no chute" ou "Pegadinha").</p>
+  <div id="diag-revisar"><p style="color:var(--muted);">Nenhuma questão marcada para revisão.</p></div>
+</div>
+
+<div class="section">
+  <h2>📍 Peso histórico vs seu desempenho</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:0.5rem;">Cada bolha é um tópico. Eixo X = frequência na prova (q/prova). Eixo Y = seu % de acerto.<br>Quanto mais à direita e abaixo, mais urgente estudar.</p>
+  <div style="max-height:350px;"><canvas id="diag-scatter"></canvas></div>
+  <div id="diag-scatter-legenda" style="font-size:0.75rem;color:var(--muted);text-align:center;"></div>
+</div>
+
+<div class="section">
+  <h2>✅ Cobertura do edital</h2>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:0.75rem;">Questões feitas por tópico (de todos os anos disponíveis).</p>
+  <div id="diag-cobertura"><p style="color:var(--muted);">Registre sessões para ver sua cobertura.</p></div>
 </div>
 </div>
 
@@ -1101,7 +1109,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     activeTab = tab;
     localStorage.setItem('poscomp_tab', tab);
     if (tab === 'estatisticas') { try { renderizarEstatisticas(); } catch(e) { console.warn(e); } }
-    if (tab === 'gaps') { try { renderizarGaps(); } catch(e) { console.warn(e); } }
+    if (tab === 'gaps') { try { renderizarDiagnostico(); } catch(e) { console.warn(e); } }
     if (tab === 'erros') { try { renderizarSessoes(); } catch(e) { console.warn(e); } }
     if (tab === 'checklist') { try { renderizarChecklist(); } catch(e) { console.warn(e); } }
     if (tab === 'formulas') { try { renderizarNotas(); } catch(e) { console.warn(e); } }
@@ -1383,391 +1391,241 @@ const TOPICOS_GAPS = [
   { topico: 'Processamento de Imagens', area: 'Tecnologia' },
 ];
 
-function prioridadeDoPct(pct) {
-  if (pct === null || pct === undefined || pct === '') return '';
-  if (pct > 70) return 'B';
-  if (pct >= 50) return 'N';
-  return 'M';
-}
+// prioridadeDoPct removida — substituida por calculo direto no renderizarDiagnostico
 
-function renderizarGaps() {
-  const sims = data.simulados;
-  const thead = document.getElementById('gaps-thead');
-  const tbody = document.getElementById('gaps-tbody');
-
-  // Inicializa matrizGaps se necessário
-  TOPICOS_GAPS.forEach(({topico}) => {
-    if (!data.matrizGaps[topico]) {
-      data.matrizGaps[topico] = { acao: '', prioridade: '' };
-    }
-  });
-
-  // Cabeçalho
-  let headerHTML = '<tr><th>Tópico</th><th>Área</th>';
-  sims.forEach(s => {
-    headerHTML += `<th title="${esc(s.nome)}">${esc(s.nome.slice(0,12))}</th>`;
-  });
-  headerHTML += '<th>Prioridade</th><th>Ação</th></tr>';
-  thead.innerHTML = headerHTML;
-
-  // Corpo
-  tbody.innerHTML = TOPICOS_GAPS.map(({topico, area}) => {
-    const gap = data.matrizGaps[topico] || {};
-    let row = `<tr><td><strong>${esc(topico)}</strong></td><td style="color:var(--muted);font-size:0.75rem;">${area}</td>`;
-
-    sims.forEach(s => {
-      const key = s.id + '_pct';
-      const val = gap[key];
-      const bg = gapHeatColor(val);
-      row += `<td class="edit-cell" style="background:${bg};text-align:center;" onclick="editarGap(this, '${esc(topico)}', '${s.id}')">${val !== null && val !== undefined && val !== '' ? val + '%' : '—'}</td>`;
-    });
-
-    const prio = gap.prioridade || '';
-    const prioBadge = prio === 'M' ? '<span class="badge badge-r">M</span>' :
-                      prio === 'N' ? '<span class="badge badge-y">N</span>' :
-                      prio === 'B' ? '<span class="badge badge-g">B</span>' : '—';
-    row += `<td>${prioBadge}</td>`;
-    row += `<td class="edit-cell" onclick="editarGapAcao(this, '${esc(topico)}')">${esc(gap.acao || '—')}</td>`;
-    row += '</tr>';
-    return row;
-  }).join('');
-
-  // Scatter chart "Onde focar"
-  renderizarScatterGaps();
-
-  // Ações sugeridas
-  renderizarAcoesGaps();
-}
-
-function gapHeatColor(val) {
-  if (val === null || val === undefined || val === '') return 'transparent';
-  const pct = Number(val);
-  if (isNaN(pct)) return 'transparent';
-  // Gradiente: vermelho (0%) → amarelo (50%) → verde (100%)
-  if (pct >= 70) return `rgba(16, 185, 129, ${0.1 + 0.3 * (pct-70)/30})`;
-  if (pct >= 50) return `rgba(${Math.round(245 - 4.6*(pct-50))}, ${Math.round(158 + 0.54*(pct-50))}, 11, ${0.15 + 0.3 * (pct-50)/20})`;
-  return `rgba(239, 68, 68, ${0.1 + 0.4 * (50-pct)/50})`;
-}
-
-function renderizarScatterGaps() {
-  if (!window._estatData || data.sessoes.length === 0) return;
-  const { todosTopicos } = window._estatData;
-  const freqMap = {};
-  todosTopicos.forEach(t => { freqMap[t.topico] = t.media_por_prova; });
-
-  // Calculate per-topic stats from sessoes
-  const topicoStats = {};
-  TOPICOS_GAPS.forEach(({topico}) => { topicoStats[topico] = { total: 0, acertos: 0 }; });
-  data.sessoes.forEach(s => {
-    s.questoes.forEach(q => {
-      if (q.acertou === 'anulada') return;
-      const t = q.topico || 'Não classificado';
-      if (topicoStats[t]) { topicoStats[t].total++; if (q.acertou === true) topicoStats[t].acertos++; }
-    });
-  });
-
-  const pontos = [];
-  TOPICOS_GAPS.forEach(({topico, area}) => {
-    const stats = topicoStats[topico] || { total: 0, acertos: 0 };
-    if (stats.total > 0) {
-      const avgPct = stats.total > 0 ? Math.round(stats.acertos / stats.total * 100) : 0;
-      const freq = freqMap[topico] || 0;
-      pontos.push({ topico, area, freq, pct: avgPct, r: freq * 4 + 4 });
-    }
-  });
-
-  if (window._scatterChart) window._scatterChart.destroy();
-  const ctx = document.getElementById('chart-scatter');
-  if (!ctx || pontos.length === 0) return;
-
-  const areaColors2 = { Matemática: 'rgba(59,130,246,0.7)', Fundamentos: 'rgba(139,92,246,0.7)', Tecnologia: 'rgba(6,182,212,0.7)' };
-  const areaBorder = { Matemática: '#3b82f6', Fundamentos: '#8b5cf6', Tecnologia: '#06b6d4' };
-
-  const datasets = ['Matemática', 'Fundamentos', 'Tecnologia'].map(area => ({
-    label: area,
-    data: pontos.filter(p => p.area === area).map(p => ({ x: p.freq, y: p.pct, r: p.r })),
-    backgroundColor: areaColors2[area],
-    borderColor: areaBorder[area],
-    borderWidth: 1,
-  }));
-
-  window._scatterChart = new Chart(ctx, {
-    type: 'bubble',
-    data: { datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { labels: { color: '#94a3b8', boxWidth: 12, font: { size: 10 } } },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => {
-              const p = pontos[ctx.datasetIndex > 0 ? pontos.filter(x => x.area === datasets[ctx.datasetIndex-1]?.label).length + ctx.dataIndex : ctx.dataIndex];
-              if (!p || pontos.indexOf(p) < 0) {
-                // simplified tooltip
-                return `${ctx.raw.x?.toFixed(1) || ctx.raw.x}q/prova, ${ctx.raw.y?.toFixed(0) || ctx.raw.y}%`;
-              }
-              const matched = pontos.find(pt => Math.abs(pt.freq - ctx.raw.x) < 0.01 && Math.abs(pt.pct - ctx.raw.y) < 0.1);
-              if (matched) return `${matched.topico}: ${matched.freq.toFixed(1)}q/prova, ${matched.pct.toFixed(0)}%`;
-              return `${ctx.raw.x.toFixed(1)}q/prova, ${ctx.raw.y.toFixed(0)}%`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: { title: { display: true, text: 'Frequência (q/prova)', color: '#94a3b8' }, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
-        y: { title: { display: true, text: '% acerto', color: '#94a3b8' }, grid: { color: '#334155' }, ticks: { color: '#94a3b8' }, min: 0, max: 100 }
-      }
-    }
-  });
-}
-
-function renderizarAcoesGaps() {
-  const container = document.getElementById('gaps-acoes');
-  if (!container) return;
-  if (!window._estatData) { container.innerHTML = '<p>Carregando dados...</p>'; return; }
-
-  const { todosTopicos } = window._estatData;
-  const freqMap = {};
-  todosTopicos.forEach(t => { freqMap[t.topico] = t.media_por_prova; });
-
-  const acoes = [];
-  TOPICOS_GAPS.forEach(({topico, area}) => {
-    const gap = data.matrizGaps[topico] || {};
-    let totalPct = 0, count = 0;
-    data.simulados.forEach(s => {
-      const v = gap[s.id + '_pct'];
-      if (v !== null && v !== undefined && v !== '' && !isNaN(v)) { totalPct += Number(v); count++; }
-    });
-    const avgPct = count > 0 ? totalPct / count : null;
-    const freq = freqMap[topico] || 0;
-    // Score de retorno: frequência * (1 - acerto) — quanto maior, mais urgente
-    const score = avgPct !== null ? freq * (1 - avgPct / 100) : 0;
-    acoes.push({ topico, area, freq, pct: avgPct, score });
-  });
-
-  if (acoes.filter(a => a.pct !== null).length === 0) {
-    container.innerHTML = '<p style="color:var(--muted);">Preencha ao menos um tópico na matriz de gaps acima para ver sugestões de prioridade.</p>';
+function renderizarDiagnostico() {
+  // Se nao tem sessoes, nao mostra nada
+  if (data.sessoes.length === 0) {
+    document.getElementById('diag-urgencia').innerHTML = '<p style="color:var(--muted);">Registre sessoes na aba 📋 Sessoes para ver o diagnostico.</p>';
+    document.getElementById('diag-tipos-erro').innerHTML = '';
+    document.getElementById('diag-revisar').innerHTML = '<p style="color:var(--muted);">Nenhuma questao marcada para revisao.</p>';
+    document.getElementById('diag-cobertura').innerHTML = '<p style="color:var(--muted);">Registre sessoes para ver sua cobertura.</p>';
+    if (window._diagScatter) { window._diagScatter.destroy(); window._diagScatter = null; }
     return;
   }
 
-  acoes.sort((a, b) => b.score - a.score);
+  // === Prepara dados agregados ===
+  const freqMap = {};
+  if (window._estatData) {
+    window._estatData.todosTopicos.forEach(function(t) { freqMap[t.topico] = t.media_por_prova; });
+  }
 
-  container.innerHTML = `
-    <table>
-      <thead><tr><th>#</th><th>Tópico</th><th>Freq.</th><th>Acerto</th><th>Prior.</th></tr></thead>
-      <tbody>
-        ${acoes.slice(0, 10).map((a, i) => {
-          const prioLabel = a.score > 2 ? '🔴 Urgente' : a.score > 1 ? '🟡 Médio' : '🟢 Baixo';
-          return `<tr>
-            <td>${i+1}</td>
-            <td><strong>${esc(a.topico)}</strong> <span style="font-size:0.65rem;color:var(--muted);">${a.area}</span></td>
-            <td>${a.freq.toFixed(1)}q/prova</td>
-            <td>${a.pct !== null ? a.pct.toFixed(0) + '%' : '—'}</td>
-            <td>${prioLabel}</td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>`;
-}
+  const topicoStats = {};
+  TOPICOS_GAPS.forEach(function(tg) { topicoStats[tg.topico] = { total: 0, acertos: 0, erros: 0, motivos: {}, revisar: [], questoes: [] }; });
 
-function editarGap(cell, topico, simId) {
-  const gap = data.matrizGaps[topico] || {};
-  const key = simId + '_pct';
-  const current = gap[key] || '';
-
-  const input = document.createElement('input');
-  input.type = 'number';
-  input.min = 0;
-  input.max = 100;
-  input.value = current;
-  input.style.width = '60px';
-  input.style.fontSize = '0.8rem';
-  input.style.padding = '0.2rem 0.3rem';
-  input.className = 'editable-input';
-
-  cell.innerHTML = '';
-  cell.appendChild(input);
-  input.focus();
-  input.select();
-
-  const salvar = () => {
-    const val = input.value.trim();
-    if (!data.matrizGaps[topico]) data.matrizGaps[topico] = { acao: '', prioridade: '' };
-    data.matrizGaps[topico][key] = val === '' ? '' : parseInt(val);
-
-    // Recalcula prioridade baseado na média dos simulados
-    const sims = data.simulados;
-    let total = 0, count = 0;
-    sims.forEach(s => {
-      const k = s.id + '_pct';
-      const v = data.matrizGaps[topico][k];
-      if (v !== null && v !== undefined && v !== '' && !isNaN(v)) {
-        total += v;
-        count++;
+  data.sessoes.forEach(function(s) {
+    s.questoes.forEach(function(q) {
+      if (q.acertou === 'anulada') return;
+      var t = q.topico || 'Nao classificado';
+      if (!topicoStats[t]) {
+        // Topico nao esta no TOPICOS_GAPS, cria entrada dinamica
+        if (!topicoStats[t]) topicoStats[t] = { total: 0, acertos: 0, erros: 0, motivos: {}, revisar: [], questoes: [], area: q.area || '' };
+      }
+      topicoStats[t].total++;
+      topicoStats[t].questoes.push({ q: q, sessao: s.nome, ano: s.ano || (q.anoRef || '') });
+      if (q.acertou === true) {
+        topicoStats[t].acertos++;
+        // Revisar depois?
+        if (q.obs === 'Quero revisar depois' || q.obs === 'Acertei no chute' || q.obs === 'Pegadinha / tricky' || q.obs === 'Demorei mas acertei (>4 min)') {
+          topicoStats[t].revisar.push({ q: q, sessao: s.nome });
+        }
+      } else if (q.acertou === false) {
+        topicoStats[t].erros++;
+        var motivo = q.motivo || 'Sem motivo';
+        topicoStats[t].motivos[motivo] = (topicoStats[t].motivos[motivo] || 0) + 1;
       }
     });
-    const media = count > 0 ? total / count : null;
-    data.matrizGaps[topico].prioridade = prioridadeDoPct(Math.round(media));
+  });
 
-    saveData();
-    renderizarGaps();
-    scheduleSync();
-  };
+  // Remove "Nao classificado" se nao tem dados
+  if (topicoStats['Nao classificado'] && topicoStats['Nao classificado'].total === 0) {
+    delete topicoStats['Nao classificado'];
+  }
 
-  input.addEventListener('blur', salvar);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); salvar(); } });
-}
+  // ===== A: Urgencia =====
+  var urgencias = [];
+  TOPICOS_GAPS.forEach(function(tg) {
+    var stats = topicoStats[tg.topico] || { total: 0, acertos: 0, erros: 0 };
+    if (stats.total === 0) return;
+    var taxaErro = (stats.acertos + stats.erros) > 0 ? Math.round(stats.erros / (stats.acertos + stats.erros) * 100) : 0;
+    var peso = freqMap[tg.topico] || 0;
+    var score = peso * (taxaErro / 100);
+    urgencias.push({
+      topico: tg.topico, area: tg.area,
+      acertos: stats.acertos, total: stats.acertos + stats.erros,
+      taxaErro: taxaErro, peso: peso, score: score
+    });
+  });
+  urgencias.sort(function(a, b) { return b.score - a.score; });
 
-function editarGapAcao(cell, topico) {
-  const gap = data.matrizGaps[topico] || {};
-  const current = gap.acao || '';
+  var urgHTML = '';
+  if (urgencias.length === 0) {
+    urgHTML = '<p style="color:var(--muted);">Responda questoes para ver a analise de urgencia.</p>';
+  } else {
+    urgHTML = '<div class="table-wrap"><table><thead><tr><th>#</th><th>Topico</th><th>Area</th><th>Acertos</th><th>Erro %</th><th>Peso (q/prova)</th><th>Prioridade</th></tr></thead><tbody>';
+    urgencias.forEach(function(u, i) {
+      var prio = u.score > 2 ? '🔴 Alta' : u.score > 1 ? '🟡 Media' : '🟢 Baixa';
+      var color = u.area === 'Matematica' ? 'var(--blue)' : u.area === 'Fundamentos' ? 'var(--purple)' : 'var(--cyan)';
+      urgHTML += '<tr><td>' + (i+1) + '</td><td><strong>' + esc(u.topico) + '</strong></td><td style="color:' + color + ';font-size:0.75rem;">' + u.area + '</td><td>' + u.acertos + '/' + u.total + '</td><td>' + u.taxaErro + '%</td><td>' + u.peso.toFixed(1) + '</td><td>' + prio + '</td></tr>';
+    });
+    urgHTML += '</tbody></table></div>';
+  }
+  document.getElementById('diag-urgencia').innerHTML = urgHTML;
 
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.value = current;
-  input.style.width = '100%';
-  input.style.fontSize = '0.8rem';
-  input.placeholder = 'Ex: Estudar teoria + 5 questões';
+  // ===== B: Tipos de erro =====
+  var todosMotivos = {};
+  Object.values(topicoStats).forEach(function(ts) {
+    Object.entries(ts.motivos).forEach(function(e) {
+      todosMotivos[e[0]] = (todosMotivos[e[0]] || 0) + e[1];
+    });
+  });
 
-  cell.innerHTML = '';
-  cell.appendChild(input);
-  input.focus();
+  var tiposHTML = '';
+  if (Object.keys(todosMotivos).length === 0) {
+    tiposHTML = '<p style="color:var(--muted);">Nenhum erro registrado ainda.</p>';
+  } else {
+    var sorted = Object.entries(todosMotivos).sort(function(a, b) { return b[1] - a[1]; });
+    tiposHTML = '<table><thead><tr><th>Motivo</th><th>Qtd</th></tr></thead><tbody>';
+    sorted.forEach(function(e) {
+      tiposHTML += '<tr><td>' + esc(e[0]) + '</td><td><strong>' + e[1] + '</strong></td></tr>';
+    });
+    tiposHTML += '</tbody></table>';
+  }
+  document.getElementById('diag-tipos-erro').innerHTML = tiposHTML;
 
-  const salvar = () => {
-    if (!data.matrizGaps[topico]) data.matrizGaps[topico] = { prioridade: '' };
-    data.matrizGaps[topico].acao = input.value.trim();
-    saveData();
-    renderizarGaps();
-    scheduleSync();
-  };
+  // Pizza chart
+  if (window._diagPizza) window._diagPizza.destroy();
+  var pizzaCtx = document.getElementById('diag-pizza-erros');
+  if (pizzaCtx && Object.keys(todosMotivos).length > 0) {
+    var labels = Object.keys(todosMotivos);
+    var dataVals = Object.values(todosMotivos);
+    var colors = ['#ef4444', '#f59e0b', '#8b5cf6', '#3b82f6', '#10b981'];
+    window._diagPizza = new Chart(pizzaCtx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{ data: dataVals, backgroundColor: colors.slice(0, labels.length), borderColor: 'var(--bg)', borderWidth: 2 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 }, padding: 12 } } }
+      }
+    });
+  }
 
-  input.addEventListener('blur', salvar);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); salvar(); } });
-}
+  // ===== C: Revisar depois =====
+  var revisar = [];
+  Object.entries(topicoStats).forEach(function(e) {
+    var t = e[0], ts = e[1];
+    ts.revisar.forEach(function(r) {
+      revisar.push({ topico: t, sessao: r.sessao, questao: r.q.questao, anoRef: r.q.anoRef, obs: r.q.obs, acertou: r.q.acertou });
+    });
+  });
 
-// =============================================================
-// CHECKLIST
-// =============================================================
-const CHECKLIST_TEMPLATE = {
-  'S1': [
-    { task: 'Simulado 1 completo (4h cronometrado)', essencial: true },
-    { task: 'Corrigir com gabarito — anotar notas', essencial: true },
-    { task: 'Análise de erros (classificar cada)', essencial: false },
-    { task: 'Montar matriz fraqueza/força', essencial: false },
-    { task: 'Refazer 5 questões mais difíceis', essencial: false },
-  ],
-  'S2': [
-    { task: 'Sessão 1 — pior tópico Fundamentos', essencial: true },
-    { task: 'Sessão 2 — 2º pior tópico Fundamentos', essencial: true },
-    { task: 'Simulado 2 completo (4h)', essencial: true },
-    { task: 'Corrigir simulado 2023', essencial: false },
-    { task: 'Comparar evolução Fundamentos', essencial: false },
-    { task: 'Revisar 1 tópico fraco de Matemática', essencial: false },
-  ],
-  'S3': [
-    { task: 'Sessão 1 Matemática (Lógica/Combinatória)', essencial: true },
-    { task: 'Sessão 2 Matemática (Probabilidade)', essencial: true },
-    { task: 'Sessão 3 Tecnologia (BD / IA)', essencial: true },
-    { task: 'Sessão 4 Tecnologia (Eng.SW / Redes)', essencial: true },
-    { task: 'Simulado 3 completo (4h)', essencial: false },
-    { task: 'Corrigir simulado 3', essencial: false },
-    { task: '20 questões avulsas de Mat + Tec', essencial: false },
-  ],
-  'S4': [
-    { task: 'Refazer TODAS erradas dos 3 simulados', essencial: true },
-    { task: 'Sessão 1 — tópico crônico 1', essencial: true },
-    { task: 'Sessão 2 — tópico crônico 2', essencial: true },
-    { task: 'Simulado 4 completo (4h)', essencial: false },
-    { task: 'Corrigir simulado 4', essencial: false },
-    { task: 'Treinar estratégia de chute', essencial: false },
-  ],
-  'S5': [
-    { task: 'Revisão final todas as erradas', essencial: true },
-    { task: 'Criar 1 pág fórmulas por área (à mão)', essencial: true },
-    { task: 'Preparar setup técnico (Chrome, webcam)', essencial: true },
-    { task: 'Mini-simulado 35q em 2h', essencial: false },
-    { task: 'Última sessão tópico problemático', essencial: false },
-  ],
-  'Véspera': [
-    { task: 'Revisar fórmulas (30min/dia máx)', essencial: true },
-    { task: 'Dormir bem todos os dias', essencial: true },
-    { task: '29/08 NÃO estudar', essencial: true },
-  ],
-  'Prova': [
-    { task: 'Acordar 2h antes', essencial: true },
-    { task: 'Entrar no sistema 60min antes', essencial: true },
-    { task: '3 folhas rascunho + caneta + documento', essencial: true },
-  ],
-};
+  var revHTML = '';
+  if (revisar.length === 0) {
+    revHTML = '<p style="color:var(--muted);">Nenhuma questao marcada para revisao. Ao marcar ✅ Acertei, use "Quero revisar depois" ou "Acertei no chute".</p>';
+  } else {
+    revHTML = '<div class="table-wrap"><table><thead><tr><th>Topico</th><th>Sessao</th><th>Questao</th><th>Motivo</th></tr></thead><tbody>';
+    revisar.forEach(function(r) {
+      var ref = r.anoRef ? r.anoRef + ' Q' + r.questao : 'Q' + r.questao;
+      revHTML += '<tr><td><strong>' + esc(r.topico) + '</strong></td><td style="font-size:0.8rem;">' + esc(r.sessao) + '</td><td>' + ref + '</td><td style="font-size:0.78rem;">' + esc(r.obs) + '</td></tr>';
+    });
+    revHTML += '</tbody></table></div>';
+  }
+  document.getElementById('diag-revisar').innerHTML = revHTML;
 
-function renderizarChecklist() {
-  // Inicializa checklist se necessário
-  Object.keys(CHECKLIST_TEMPLATE).forEach(semana => {
-    if (!data.checklist[semana]) {
-      data.checklist[semana] = CHECKLIST_TEMPLATE[semana].map(t => ({ ...t, done: false, date: '' }));
-    } else {
-      // Garante que tarefas novas apareçam
-      CHECKLIST_TEMPLATE[semana].forEach(t => {
-        if (!data.checklist[semana].find(dt => dt.task === t.task)) {
-          data.checklist[semana].push({ ...t, done: false, date: '' });
-        }
-      });
+  // ===== D: Scatter =====
+  var pontos = [];
+  TOPICOS_GAPS.forEach(function(tg) {
+    var stats = topicoStats[tg.topico] || { total: 0, acertos: 0, erros: 0 };
+    var validas = stats.acertos + stats.erros;
+    if (validas > 0) {
+      var pct = Math.round(stats.acertos / validas * 100);
+      var freq = freqMap[tg.topico] || 0;
+      pontos.push({ topico: tg.topico, area: tg.area, freq: freq, pct: pct, r: Math.max(freq * 3 + 3, 5) });
     }
   });
 
-  const container = document.getElementById('checklist-container');
-  const semanaNomes = { S1: 'Semana 1 — Diagnóstico', S2: 'Semana 2 — Fundamentos', S3: 'Semana 3 — Mat + Tec', S4: 'Semana 4 — Lacunas', S5: 'Semana 5 — Revisão', 'Véspera': '🧘 Véspera', 'Prova': '🏁 Dia da Prova' };
+  if (window._diagScatter) window._diagScatter.destroy();
+  var scCtx = document.getElementById('diag-scatter');
+  if (scCtx && pontos.length > 0) {
+    var areaColors = { Matematica: 'rgba(59,130,246,0.65)', Fundamentos: 'rgba(139,92,246,0.65)', Tecnologia: 'rgba(6,182,212,0.65)' };
+    var areaBorder = { Matematica: '#3b82f6', Fundamentos: '#8b5cf6', Tecnologia: '#06b6d4' };
+    var datasets = ['Matematica', 'Fundamentos', 'Tecnologia'].map(function(area) {
+      var pts = pontos.filter(function(p) { return p.area === area; });
+      return {
+        label: area,
+        data: pts.map(function(p) { return { x: p.freq, y: p.pct, r: p.r }; }),
+        backgroundColor: areaColors[area], borderColor: areaBorder[area], borderWidth: 1
+      };
+    }).filter(function(d) { return d.data.length > 0; });
 
-  let html = '';
-  Object.keys(CHECKLIST_TEMPLATE).forEach(semana => {
-    const tasks = data.checklist[semana] || [];
-    const doneCount = tasks.filter(t => t.done).length;
-    const pct = tasks.length > 0 ? Math.round(doneCount / tasks.length * 100) : 0;
-
-    html += `<div class="week" style="margin-bottom:1rem;">
-      <div class="week-header">
-        <h3>${semanaNomes[semana] || semana}</h3>
-        <span class="dates">${doneCount}/${tasks.length} (${pct}%)</span>
-      </div>
-      <div class="progress-row">
-        <div class="progress-bar"><div class="progress-fill fill-green" style="width:${pct}%"></div></div>
-      </div>
-      <ul class="tasks">`;
-
-    tasks.forEach((t, i) => {
-      const dotClass = t.essencial ? 'dot-red' : 'dot-yellow';
-      const checked = t.done ? 'checked' : '';
-      html += `<li>
-        <input type="checkbox" ${checked} onchange="toggleChecklist('${semana}', ${i}, this.checked)" style="margin-top:3px;">
-        <span style="flex:1;">
-          <span class="dot ${dotClass}" style="display:inline-block;margin-right:0.3rem;"></span>
-          ${t.essencial ? '<strong>' + esc(t.task) + '</strong>' : esc(t.task)}
-        </span>
-        ${t.date ? `<span style="font-size:0.7rem;color:var(--muted);">${t.date}</span>` : ''}
-      </li>`;
+    window._diagScatter = new Chart(scCtx, {
+      type: 'bubble',
+      data: { datasets: datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#94a3b8', boxWidth: 12, font: { size: 10 } } },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                var p = pontos.find(function(pt) { return Math.abs(pt.freq - ctx.raw.x) < 0.01 && Math.abs(pt.pct - ctx.raw.y) < 1; });
+                return (p ? p.topico : '') + ': ' + ctx.raw.x.toFixed(1) + 'q/prova, ' + ctx.raw.y + '%';
+              }
+            }
+          }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Frequencia (q/prova)', color: '#94a3b8' }, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+          y: { title: { display: true, text: '% acerto', color: '#94a3b8' }, grid: { color: '#334155' }, ticks: { color: '#94a3b8' }, min: 0, max: 100 }
+        }
+      }
     });
+    document.getElementById('diag-scatter-legenda').innerHTML = '🔵 Matematica &nbsp; 🟣 Fundamentos &nbsp; 🔷 Tecnologia &nbsp;|&nbsp; Tamanho = questoes feitas';
+  } else {
+    document.getElementById('diag-scatter-legenda').innerHTML = 'Registre sessoes com questoes para ver o grafico.';
+  }
 
-    html += '</ul></div>';
+  // ===== E: Cobertura =====
+  var covHTML = '';
+  var anosFiltro = data.filtroData || { inicio: 2018, fim: 2025 };
+  TOPICOS_GAPS.forEach(function(tg) {
+    var stats = topicoStats[tg.topico] || { total: 0, acertos: 0, erros: 0 };
+    var totalHist = 0;
+    // Busca total historico do ESTATISTICAS para os anos do filtro
+    if (ESTATISTICAS && ESTATISTICAS.por_topico) {
+      ['Matematica', 'Fundamentos', 'Tecnologia'].forEach(function(area) {
+        var topicos = ESTATISTICAS.por_topico[area] || [];
+        var match = topicos.find(function(t) { return t.topico === tg.topico; });
+        if (match && match.por_ano) {
+          Object.entries(match.por_ano).forEach(function(e) {
+            var ano = parseInt(e[0]);
+            if (ano >= anosFiltro.inicio && ano <= anosFiltro.fim) {
+              totalHist += e[1];
+            }
+          });
+        }
+      });
+    }
+    var feitas = stats.total;
+    var pctCob = totalHist > 0 ? Math.min(100, Math.round(feitas / totalHist * 100)) : (feitas > 0 ? 100 : 0);
+    var barColor = pctCob >= 60 ? 'var(--green)' : pctCob >= 20 ? 'var(--yellow)' : 'var(--muted)';
+    covHTML += '<div style="margin-bottom:0.4rem;font-size:0.82rem;">' +
+      '<span style="display:inline-block;width:180px;">' + esc(tg.topico) + '</span>' +
+      '<span style="display:inline-block;width:60px;text-align:right;">' + feitas + '/' + totalHist + '</span>' +
+      '<span style="display:inline-block;width:160px;margin-left:0.5rem;vertical-align:middle;">' +
+        '<span style="display:block;height:8px;border-radius:4px;background:rgba(255,255,255,0.06);">' +
+          '<span style="display:block;height:100%;width:' + pctCob + '%;background:' + barColor + ';border-radius:4px;"></span>' +
+        '</span>' +
+      '</span>' +
+    '</div>';
   });
-
-  container.innerHTML = html;
+  document.getElementById('diag-cobertura').innerHTML = covHTML || '<p style="color:var(--muted);">Sem dados de cobertura.</p>';
 }
 
-function toggleChecklist(semana, index, done) {
-  if (!data.checklist[semana]) return;
-  data.checklist[semana][index].done = done;
-  data.checklist[semana][index].date = done ? new Date().toISOString().slice(0, 10) : '';
-  saveData();
-  renderizarChecklist();
-  scheduleSync();
-}
-
-// =============================================================
-// SESSÕES DE ESTUDO (substitui Classificação de Erros)
-// =============================================================
-let sessaoAtiva = null; // { id, tipo, nome, ano, data, questoes: [] }
-let questaoSelecionada = null;
+function renderizarGaps() { renderizarDiagnostico(); }
 
 function migrarErrosAntigos() {
   if (data.erros && data.erros.length > 0 && data.sessoes.length === 0) {
@@ -3182,7 +3040,7 @@ function renderizarTudo() {
   safeRender(renderizarSimulados, 'simulados');
   safeRender(renderizarCronograma, 'cronograma');
   safeRender(atualizarStatsCards, 'statsCards');
-  safeRender(renderizarGaps, 'gaps');
+  safeRender(renderizarDiagnostico, 'diagnostico');
   safeRender(renderizarChecklist, 'checklist');
   safeRender(renderizarSessoes, 'sessoes');
   safeRender(renderizarEstatisticas, 'estatisticas');
